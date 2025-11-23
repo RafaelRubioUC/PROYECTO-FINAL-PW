@@ -1,0 +1,9 @@
+# Dependencias (Son miles de archivos, no los queremos en la nube)
+node_modules/
+
+# Seguridad (Aquí están tus claves, PROHIBIDO subir esto)
+.env
+
+# Logs y archivos de sistema basura
+npm-debug.log*
+.DS_Store
