@@ -1,6 +1,11 @@
 import { Router } from "express";
 // Importamos al controlador
-import { getTransactions, createTransaction } from "../controllers/transactions.controller.js";
+import {
+  getTransactions,
+  createTransaction,
+  deleteTransaction,
+  updateTransaction,
+} from "../controllers/transactions.controller.js";
 // Importamos al middleware (Guardia)
 import { authRequired } from "../middlewares/validateToken.js";
 
@@ -10,5 +15,7 @@ const router = Router();
 
 router.get("/transactions", authRequired, getTransactions);
 router.post("/transactions", authRequired, createTransaction);
+router.delete("/transactions/:id", authRequired, deleteTransaction);
+router.put("/transactions/:id", authRequired, updateTransaction);
 
 export default router;
