@@ -3,6 +3,7 @@ import cors from "cors";
 import { db } from "./db/connection.js";
 import authRoutes from "./routes/auth.routes.js";
 import transactionsRoutes from "./routes/transactions.routes.js";
+import categoriesRoutes from './routes/categories.routes.js';
 
 const app = express();
 const PORT = process.env.PORT;
@@ -13,6 +14,8 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api", transactionsRoutes);
+
+app.use('/api', categoriesRoutes);
 
 app.get("/", async (req, res) => {
   try {
