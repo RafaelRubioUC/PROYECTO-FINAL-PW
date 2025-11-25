@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // <--- Importante
 import { FiUserPlus, FiUser, FiMail, FiLock } from "react-icons/fi";
 
 function Register() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -19,9 +20,10 @@ function Register() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validaciones del Frontend
     if (form.password !== form.confirmPassword) {
       alert("Las contraseñas no coinciden.");
       return;
@@ -32,33 +34,51 @@ function Register() {
       return;
     }
 
-    // Más adelante, aquí irá el POST al backend (Express + JWT).
-    console.log("Register data:", form);
+    try {
+      // Petición al Backend
+      const response = await fetch("http://localhost:4000/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: form.name, // Enviamos el nombre (el backend ya sabe manejarlo)
+          email: form.email,
+          password: form.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("¡Cuenta creada exitosamente! Ahora inicia sesión.");
+        navigate("/login"); // Redirigir al login
+      } else {
+        alert(data.message || "Error al registrarse");
+      }
+    } catch (error) {
+      console.error("Error de conexión:", error);
+      alert("No se pudo conectar con el servidor.");
+    }
   };
 
   return (
     <section className="hero-pages">
       <div className="auth-card">
-        {/* Encabezado con icono de usuario + */}
         <div className="auth-header">
           <div className="auth-lock-icon">
             <FiUserPlus />
           </div>
           <h1 className="auth-title">Create your account</h1>
-          <p className="auth-subtitle">
-            Join SpendList to manage and understand your finances in a simpler
-            way.
-          </p>
+          <p className="auth-subtitle">Join SpendList to manage and understand your finances in a simpler way.</p>
         </div>
 
-        {/* Formulario */}
         <form className="auth-form" onSubmit={handleSubmit}>
-          {/* Full name */}
+          {/* Full Name */}
           <div className="auth-field">
             <div className="auth-field-header">
               <span>Full Name</span>
             </div>
-
             <div className="auth-input-wrapper">
               <span className="auth-input-icon">
                 <FiUser />
@@ -79,7 +99,6 @@ function Register() {
             <div className="auth-field-header">
               <span>Email address</span>
             </div>
-
             <div className="auth-input-wrapper">
               <span className="auth-input-icon">
                 <FiMail />
@@ -100,7 +119,6 @@ function Register() {
             <div className="auth-field-header">
               <span>Password</span>
             </div>
-
             <div className="auth-input-wrapper">
               <span className="auth-input-icon">
                 <FiLock />
@@ -114,19 +132,14 @@ function Register() {
                 required
               />
             </div>
-
-            <p className="auth-helper">
-              Use 8 or more characters with a mix of letters, numbers &amp;
-              symbols.
-            </p>
+            <p className="auth-helper">Use 8 or more characters with a mix of letters, numbers & symbols.</p>
           </div>
 
-          {/* Confirm password */}
+          {/* Confirm Password */}
           <div className="auth-field">
             <div className="auth-field-header">
               <span>Confirm Password</span>
             </div>
-
             <div className="auth-input-wrapper">
               <span className="auth-input-icon">
                 <FiLock />
@@ -142,14 +155,9 @@ function Register() {
             </div>
           </div>
 
-          {/* Términos y privacidad */}
+          {/* Terms */}
           <div className="auth-terms">
-            <input
-              type="checkbox"
-              name="acceptTerms"
-              checked={form.acceptTerms}
-              onChange={handleChange}
-            />
+            <input type="checkbox" name="acceptTerms" checked={form.acceptTerms} onChange={handleChange} />
             <span>
               I agree to the{" "}
               <button type="button" className="auth-link auth-link--inline">
@@ -163,13 +171,11 @@ function Register() {
             </span>
           </div>
 
-          {/* Botón principal */}
           <button type="submit" className="btn auth-submit">
             Create Account
           </button>
         </form>
 
-        {/* Link a login */}
         <p className="auth-footer-text">
           Already have an account?{" "}
           <Link to="/login" className="auth-link">

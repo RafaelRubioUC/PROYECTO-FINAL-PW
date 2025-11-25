@@ -2,14 +2,14 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { db } from "../db/connection.js";
 
-// 1. REGISTRAR USUARIO (Versión Limpia: Solo Email y Password)
+// 1. REGISTRAR USUARIO
 export const register = async (req, res) => {
   try {
-    const { email, password } = req.body; // Ya no pedimos 'name'
+    const { name, email, password } = req.body; //
 
     // Validación estricta solo para lo que importa
-    if (!email || !password) {
-      return res.status(400).json({ message: "Faltan datos (email o password)" });
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Faltan datos" });
     }
 
     // A) Verificar si ya existe
@@ -24,11 +24,11 @@ export const register = async (req, res) => {
 
     // C) Guardar
     const query = `
-      INSERT INTO users (email, password) 
-      VALUES ($1, $2) 
-      RETURNING id, email, created_at`;
+      INSERT INTO users (name, email, password) 
+      VALUES ($1, $2, $3) 
+      RETURNING id, name, email, created_at`;
 
-    const newUser = await db.query(query, [email, hashedPassword]);
+    const newUser = await db.query(query, [name, email, hashedPassword]);
 
     // D) Generar Token
     const token = jwt.sign({ id: newUser.rows[0].id }, process.env.JWT_SECRET, { expiresIn: "1h" });

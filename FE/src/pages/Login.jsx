@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // <--- Agregamos useNavigate
 import { FiLock, FiMail } from "react-icons/fi";
 
 function Login() {
+  const navigate = useNavigate(); // <--- Hook para navegar
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -17,35 +18,63 @@ function Login() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Aquí luego irá la llamada al backend (Express + JWT)
-    console.log("Login data:", form);
+
+    try {
+      // 1. Petición al Backend
+      const response = await fetch("http://localhost:4000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      // 2. Verificación
+      if (response.ok) {
+        // ¡Login Exitoso!
+        // Guardamos el token en el navegador para usarlo después
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+
+        alert("¡Bienvenido! Sesión iniciada.");
+
+        // Redirigir al Dashboard o Home (ajusta la ruta "/" si tienes otra)
+        navigate("/");
+      } else {
+        // Error (contraseña mal, usuario no existe)
+        alert(data.message || "Error al iniciar sesión");
+      }
+    } catch (error) {
+      console.error("Error de conexión:", error);
+      alert("No se pudo conectar con el servidor.");
+    }
   };
 
   return (
     <section className="hero-pages">
       <div className="auth-card">
-        {/* Encabezado con candado */}
         <div className="auth-header">
           <div className="auth-lock-icon">
             <FiLock />
           </div>
           <h1 className="auth-title">Bienvenido de nuevo</h1>
           <p className="auth-subtitle">
-            Inicia sesión en tu cuenta de SpendList para continuar
-            administrando tus finanzas.
+            Inicia sesión en tu cuenta de SpendList para continuar administrando tus finanzas.
           </p>
         </div>
 
-        {/* Formulario */}
         <form className="auth-form" onSubmit={handleSubmit}>
-          {/* Email */}
           <div className="auth-field">
             <div className="auth-field-header">
               <span>Email address</span>
             </div>
-
             <div className="auth-input-wrapper">
               <span className="auth-input-icon">
                 <FiMail />
@@ -61,18 +90,13 @@ function Login() {
             </div>
           </div>
 
-          {/* Password */}
           <div className="auth-field">
             <div className="auth-field-header">
               <span>Password</span>
-              <button
-                type="button"
-                className="auth-link auth-link--small"
-              >
+              <button type="button" className="auth-link auth-link--small">
                 Forgot password?
               </button>
             </div>
-
             <div className="auth-input-wrapper">
               <span className="auth-input-icon">
                 <FiLock />
@@ -88,26 +112,18 @@ function Login() {
             </div>
           </div>
 
-          {/* Remember me */}
           <div className="auth-options">
             <label className="auth-remember">
-              <input
-                type="checkbox"
-                name="remember"
-                checked={form.remember}
-                onChange={handleChange}
-              />
+              <input type="checkbox" name="remember" checked={form.remember} onChange={handleChange} />
               <span>Remember me</span>
             </label>
           </div>
 
-          {/* Botón principal */}
           <button type="submit" className="btn auth-submit">
             Sign in
           </button>
         </form>
 
-        {/* Link a registro */}
         <p className="auth-footer-text">
           Don&apos;t have an account?{" "}
           <Link to="/register" className="auth-link">
