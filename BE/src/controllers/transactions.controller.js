@@ -21,29 +21,28 @@ export const getTransactions = async (req, res) => {
   }
 };
 
-// 2. CREAR UNA TRANSACCIÓN (POST)
+// 2. CREAR TRANSACCION
 export const createTransaction = async (req, res) => {
   try {
-    const { amount, description, date } = req.body;
-    const userId = req.user.id; // Asignamos la transacción al usuario logueado
+    // RECIBIMOS category_id
+    const { amount, description, date, category_id } = req.body;
+    const userId = req.user.id;
 
-    // Validación básica
     if (!amount) {
-      return res.status(400).json({ message: "El monto (amount) es obligatorio" });
+      return res.status(400).json({ message: "El monto es obligatorio" });
     }
 
-    // Insertar en Base de Datos
-    // Nota: Dejamos category_id en NULL por ahora hasta que programemos las categorías
+    // Agregamos la columna category_id al INSERT
     const query = `
-      INSERT INTO transactions (amount, description, date, user_id)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO transactions (amount, description, date, user_id, category_id)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING *
     `;
 
-    // Si no mandan fecha, ponemos la de hoy (usando undefined para que SQL use el DEFAULT)
     const transactionDate = date || new Date();
 
-    const { rows } = await db.query(query, [amount, description, transactionDate, userId]);
+    // Pasamos el category_id como el parámetro $5
+    const { rows } = await db.query(query, [amount, description, transactionDate, userId, category_id]);
 
     res.status(201).json({
       success: true,
@@ -52,7 +51,7 @@ export const createTransaction = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error al guardar transacción", error: error.message });
+    res.status(500).json({ message: "Error al guardar", error: error.message });
   }
 };
 
@@ -61,7 +60,6 @@ export const deleteTransaction = async (req, res) => {
   try {
     const { id } = req.params; // El ID viene en la URL
     const userId = req.user.id; // Solo el dueño puede borrar
-
     const query = "DELETE FROM transactions WHERE id = $1 AND user_id = $2 RETURNING *";
     const { rows, rowCount } = await db.query(query, [id, userId]);
 
@@ -81,34 +79,31 @@ export const deleteTransaction = async (req, res) => {
   }
 };
 
-// 4. ACTUALIZAR UNA TRANSACCIÓN (PUT)
+// 4. ACTUALIZAR TRANSACCION
 export const updateTransaction = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
-    const { amount, description, date } = req.body;
+    // Recibimos también category_id para poder cambiarla si nos equivocamos
+    const { amount, description, date, category_id } = req.body;
 
-    // Solo actualizamos si la transacción pertenece al usuario (AND user_id = $4)
     const query = `
       UPDATE transactions 
-      SET amount = $1, description = $2, date = $3
-      WHERE id = $5 AND user_id = $4
+      SET amount = $1, description = $2, date = $3, category_id = $4
+      WHERE id = $5 AND user_id = $6
       RETURNING *
     `;
 
-    // Si no mandan fecha nueva, usamos la actual o mantenemos la anterior (lógica simple aquí)
-    // Para simplificar, asumimos que el frontend manda la fecha correcta.
     const transactionDate = date || new Date();
 
-    const { rows, rowCount } = await db.query(query, [amount, description, transactionDate, userId, id]);
+    // Pasamos los parámetros en orden correcto
+    const { rows, rowCount } = await db.query(query, [amount, description, transactionDate, category_id, id, userId]);
 
-    if (rowCount === 0) {
-      return res.status(404).json({ message: "Transacción no encontrada o no autorizada" });
-    }
+    if (rowCount === 0) return res.status(404).json({ message: "No encontrada" });
 
     return res.json({
       success: true,
-      message: "Transacción actualizada",
+      message: "Actualizada",
       data: rows[0],
     });
   } catch (error) {
