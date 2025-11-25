@@ -4,6 +4,7 @@ import { FiLock, FiMail } from "react-icons/fi";
 
 function Login() {
   const navigate = useNavigate(); // <--- Hook para navegar
+  const API_URL = import.meta.env.VITE_API_URL;
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -23,7 +24,7 @@ function Login() {
 
     try {
       // 1. Petición al Backend
-      const response = await fetch("http://localhost:4000/api/auth/login", {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -34,9 +35,9 @@ function Login() {
         }),
       });
 
-      const data = await response.json();
+      const data = await response.json(); //convierte en un objeto de javascript, extrae lo importante
 
-      // 2. Verificación
+      // 2. Verifica que la comunicacion http entre el navegador y el servidor fue exitosa
       if (response.ok) {
         // ¡Login Exitoso!
         // Guardamos el token en el navegador para usarlo después
@@ -45,7 +46,7 @@ function Login() {
 
         alert("¡Bienvenido! Sesión iniciada.");
 
-        // Redirigir al Dashboard o Home (ajusta la ruta "/" si tienes otra)
+        // Redirigir al Dashboard o Home
         navigate("/");
       } else {
         // Error (contraseña mal, usuario no existe)

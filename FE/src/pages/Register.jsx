@@ -4,6 +4,7 @@ import { FiUserPlus, FiUser, FiMail, FiLock } from "react-icons/fi";
 
 function Register() {
   const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL;
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -36,7 +37,7 @@ function Register() {
 
     try {
       // Petición al Backend
-      const response = await fetch("http://localhost:4000/api/auth/register", {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
