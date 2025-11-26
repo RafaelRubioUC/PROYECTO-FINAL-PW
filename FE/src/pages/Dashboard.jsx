@@ -41,23 +41,42 @@ const Dashboard = () => {
   const [accountOpen, setAccountOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const [userData] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    phone: "+1 (555) 123-4567",
-    location: "New York, USA",
-    joinDate: "Jan 2023",
+  const [userData, setUserData] = useState({
+    name: "Usuario",
+    email: "usuario@example.com",
   });
+
+  // Efecto para cargar datos al iniciar el componente
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+
+        // ACTUALIZACIÓN: Usamos el nombre directo de la base de datos
+        setUserData({
+          name: parsedUser.name, // <--- ¡Sin fallbacks! El nombre real.
+          email: parsedUser.email,
+          phone: "Sin registrar",
+          location: "El Salvador",
+          joinDate: new Date(parsedUser.created_at).toLocaleDateString(),
+        });
+      } catch (error) {
+        console.error("Error al leer datos de usuario:", error);
+      }
+    }
+  }, []);
 
   // Handle sign out
   const handleSignOut = () => {
     // Limpiar sesión del localStorage
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    
+
     // Cerrar el dropdown
     setAccountOpen(false);
-    
+
     // Redirigir a login (cambiar según tu estructura de rutas)
     window.location.href = "/login";
   };
@@ -74,15 +93,9 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div
-      className={`dashboard-layout ${
-        sidebarCollapsed ? "dashboard-layout--collapsed" : ""
-      }`}
-    >
+    <div className={`dashboard-layout ${sidebarCollapsed ? "dashboard-layout--collapsed" : ""}`}>
       {/* Overlay para móvil (drawer). Sólo se muestra cuando el sidebar está abierto */}
-      {!sidebarCollapsed && (
-        <div className="sidebar-backdrop" onClick={toggleSidebar} />
-      )}
+      {!sidebarCollapsed && <div className="sidebar-backdrop" onClick={toggleSidebar} />}
 
       {/* Botón flotante para colapsar / expandir sidebar */}
       <button type="button" className="sidebar-toggle" onClick={toggleSidebar}>
@@ -90,17 +103,9 @@ const Dashboard = () => {
       </button>
 
       {/* ===== SIDEBAR ===== */}
-      <aside
-        className={`dashboard-sidebar ${
-          sidebarCollapsed ? "collapsed" : ""
-        }`}
-      >
+      <aside className={`dashboard-sidebar ${sidebarCollapsed ? "collapsed" : ""}`}>
         <div className="sidebar-logo">
-          <img
-            src="/assets/logo-icon.jpeg"
-            alt="SpendList logo"
-            className="sidebar-logo-img"
-          />
+          <img src="/assets/logo-icon.jpeg" alt="SpendList logo" className="sidebar-logo-img" />
           <span className="sidebar-logo-text">
             Spend<span>List</span>
           </span>
@@ -108,9 +113,7 @@ const Dashboard = () => {
 
         <nav className="sidebar-nav">
           <button
-            className={`sidebar-item ${
-              activeTab === "recap" ? "active" : ""
-            }`}
+            className={`sidebar-item ${activeTab === "recap" ? "active" : ""}`}
             onClick={() => setActiveTab("recap")}
           >
             <FiHome />
@@ -118,9 +121,7 @@ const Dashboard = () => {
           </button>
 
           <button
-            className={`sidebar-item ${
-              activeTab === "transactions" ? "active" : ""
-            }`}
+            className={`sidebar-item ${activeTab === "transactions" ? "active" : ""}`}
             onClick={() => setActiveTab("transactions")}
           >
             <FiList />
@@ -128,9 +129,7 @@ const Dashboard = () => {
           </button>
 
           <button
-            className={`sidebar-item ${
-              activeTab === "budget" ? "active" : ""
-            }`}
+            className={`sidebar-item ${activeTab === "budget" ? "active" : ""}`}
             onClick={() => setActiveTab("budget")}
           >
             <FiPieChart />
@@ -138,9 +137,7 @@ const Dashboard = () => {
           </button>
 
           <button
-            className={`sidebar-item ${
-              activeTab === "reports" ? "active" : ""
-            }`}
+            className={`sidebar-item ${activeTab === "reports" ? "active" : ""}`}
             onClick={() => setActiveTab("reports")}
           >
             <FiBarChart2 />
@@ -148,9 +145,7 @@ const Dashboard = () => {
           </button>
 
           <button
-            className={`sidebar-item ${
-              activeTab === "settings" ? "active" : ""
-            }`}
+            className={`sidebar-item ${activeTab === "settings" ? "active" : ""}`}
             onClick={() => setActiveTab("settings")}
           >
             <FiSettings />
@@ -170,8 +165,17 @@ const Dashboard = () => {
               <FiUser />
             </div>
             <div className="sidebar-account-info">
-              <span className="sidebar-account-name">John Doe</span>
-              <span className="sidebar-account-role">john.doe@example.com</span>
+              <span className="sidebar-account-name">
+                {userData.name
+                  ? (() => {
+                      const parts = userData.name.split(" ");
+                      if (parts.length > 2) {
+                        return `${parts[0]} ${parts[2]}`;
+                      }
+                      return userData.name;
+                    })()
+                  : "Usuario"}
+              </span>
             </div>
           </button>
 
@@ -206,11 +210,7 @@ const Dashboard = () => {
                 <FiHelpCircle className="account-menu-icon" /> Help & Support
               </button>
 
-              <button 
-                className="account-menu-item account-menu-item--logout" 
-                role="menuitem"
-                onClick={handleSignOut}
-              >
+              <button className="account-menu-item account-menu-item--logout" role="menuitem" onClick={handleSignOut}>
                 <FiLogOut className="account-menu-icon" /> Sign Out
               </button>
             </div>
@@ -223,9 +223,7 @@ const Dashboard = () => {
         <header className="dashboard-header">
           <div>
             <h1>{sectionTitles[activeTab]}</h1>
-            <p className="dashboard-subtitle">
-              {sectionSubtitles[activeTab]}
-            </p>
+            <p className="dashboard-subtitle">{sectionSubtitles[activeTab]}</p>
           </div>
         </header>
 
@@ -237,25 +235,19 @@ const Dashboard = () => {
               <div className="summary-card">
                 <p className="summary-label">Total Balance</p>
                 <h2 className="summary-value">$12,345</h2>
-                <p className="summary-change positive">
-                  ↑ 12% from last month
-                </p>
+                <p className="summary-change positive">↑ 12% from last month</p>
               </div>
 
               <div className="summary-card">
                 <p className="summary-label">Income</p>
                 <h2 className="summary-value">$5,678</h2>
-                <p className="summary-change positive">
-                  ↑ 8% from last month
-                </p>
+                <p className="summary-change positive">↑ 8% from last month</p>
               </div>
 
               <div className="summary-card">
                 <p className="summary-label">Expenses</p>
                 <h2 className="summary-value">$3,210</h2>
-                <p className="summary-change negative">
-                  ↓ 5% from last month
-                </p>
+                <p className="summary-change negative">↓ 5% from last month</p>
               </div>
             </section>
 
@@ -273,10 +265,7 @@ const Dashboard = () => {
                     <span className="budget-amount">$450 / $600</span>
                   </div>
                   <div className="budget-bar">
-                    <div
-                      className="budget-bar-fill budget-bar-fill--green"
-                      style={{ width: "75%" }}
-                    />
+                    <div className="budget-bar-fill budget-bar-fill--green" style={{ width: "75%" }} />
                   </div>
                 </div>
 
@@ -286,10 +275,7 @@ const Dashboard = () => {
                     <span className="budget-amount">$180 / $300</span>
                   </div>
                   <div className="budget-bar">
-                    <div
-                      className="budget-bar-fill budget-bar-fill--yellow"
-                      style={{ width: "60%" }}
-                    />
+                    <div className="budget-bar-fill budget-bar-fill--yellow" style={{ width: "60%" }} />
                   </div>
                 </div>
 
@@ -299,10 +285,7 @@ const Dashboard = () => {
                     <span className="budget-amount">$120 / $200</span>
                   </div>
                   <div className="budget-bar">
-                    <div
-                      className="budget-bar-fill budget-bar-fill--red"
-                      style={{ width: "80%" }}
-                    />
+                    <div className="budget-bar-fill budget-bar-fill--red" style={{ width: "80%" }} />
                   </div>
                 </div>
               </div>
@@ -315,56 +298,34 @@ const Dashboard = () => {
 
                 <ul className="transactions-list">
                   <li className="transaction-item">
-                    <div className="transaction-icon transaction-icon--green">
-                      🛒
-                    </div>
+                    <div className="transaction-icon transaction-icon--green">🛒</div>
                     <div className="transaction-info">
-                      <span className="transaction-title">
-                        Grocery Store
-                      </span>
-                      <span className="transaction-meta">
-                        Today, 10:30 AM
-                      </span>
+                      <span className="transaction-title">Grocery Store</span>
+                      <span className="transaction-meta">Today, 10:30 AM</span>
                     </div>
-                    <span className="transaction-amount negative">
-                      - $85.20
-                    </span>
+                    <span className="transaction-amount negative">- $85.20</span>
                   </li>
 
                   <li className="transaction-item">
-                    <div className="transaction-icon transaction-icon--blue">
-                      💼
-                    </div>
+                    <div className="transaction-icon transaction-icon--blue">💼</div>
                     <div className="transaction-info">
                       <span className="transaction-title">Salary</span>
-                      <span className="transaction-meta">
-                        Yesterday, 9:00 AM
-                      </span>
+                      <span className="transaction-meta">Yesterday, 9:00 AM</span>
                     </div>
-                    <span className="transaction-amount positive">
-                      + $2,500.00
-                    </span>
+                    <span className="transaction-amount positive">+ $2,500.00</span>
                   </li>
 
                   <li className="transaction-item">
-                    <div className="transaction-icon transaction-icon--purple">
-                      ☕
-                    </div>
+                    <div className="transaction-icon transaction-icon--purple">☕</div>
                     <div className="transaction-info">
                       <span className="transaction-title">Coffee Shop</span>
-                      <span className="transaction-meta">
-                        Yesterday, 4:15 PM
-                      </span>
+                      <span className="transaction-meta">Yesterday, 4:15 PM</span>
                     </div>
-                    <span className="transaction-amount negative">
-                      - $4.50
-                    </span>
+                    <span className="transaction-amount negative">- $4.50</span>
                   </li>
                 </ul>
 
-                <button className="transactions-view-all">
-                  View All Transactions
-                </button>
+                <button className="transactions-view-all">View All Transactions</button>
               </div>
             </section>
 
@@ -379,9 +340,7 @@ const Dashboard = () => {
                     <option>This Year</option>
                   </select>
                 </div>
-                <div className="chart-placeholder">
-                  Chart will be displayed here
-                </div>
+                <div className="chart-placeholder">Chart will be displayed here</div>
               </div>
             </section>
           </>
@@ -395,9 +354,7 @@ const Dashboard = () => {
               <div className="panel-header">
                 <h3>Transactions</h3>
               </div>
-              <div className="chart-placeholder">
-                Aquí irá la tabla de transacciones.
-              </div>
+              <div className="chart-placeholder">Aquí irá la tabla de transacciones.</div>
             </div>
           </section>
         )}
@@ -408,9 +365,7 @@ const Dashboard = () => {
               <div className="panel-header">
                 <h3>Budget</h3>
               </div>
-              <div className="chart-placeholder">
-                Aquí configuraremos los presupuestos por categoría.
-              </div>
+              <div className="chart-placeholder">Aquí configuraremos los presupuestos por categoría.</div>
             </div>
           </section>
         )}
@@ -421,9 +376,7 @@ const Dashboard = () => {
               <div className="panel-header">
                 <h3>Reports</h3>
               </div>
-              <div className="chart-placeholder">
-                Aquí mostraremos gráficos y reportes detallados.
-              </div>
+              <div className="chart-placeholder">Aquí mostraremos gráficos y reportes detallados.</div>
             </div>
           </section>
         )}
@@ -434,9 +387,7 @@ const Dashboard = () => {
               <div className="panel-header">
                 <h3>Settings</h3>
               </div>
-              <div className="chart-placeholder">
-                Aquí podrás editar tu información y preferencias.
-              </div>
+              <div className="chart-placeholder">Aquí podrás editar tu información y preferencias.</div>
             </div>
           </section>
         )}
@@ -447,18 +398,23 @@ const Dashboard = () => {
           <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
             <div className="profile-modal-header">
               <h2 style={{ margin: 0 }}>Profile</h2>
-              <button className="btn-close" onClick={() => setProfileOpen(false)} aria-label="Close profile">×</button>
+              <button className="btn-close" onClick={() => setProfileOpen(false)} aria-label="Close profile">
+                ×
+              </button>
             </div>
 
             <div className="profile-modal-body">
               <div className="profile-avatar">
+                {/* VALIDACIÓN DE SEGURIDAD: Solo intentamos separar si existe el nombre */}
                 {userData.name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .slice(0, 2)
-                  .join("")}
+                  ? userData.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .slice(0, 2)
+                      .join("")
+                      .toUpperCase()
+                  : "U"}
               </div>
-
               <div className="profile-info-grid">
                 <div>
                   <div className="profile-info-label">Name</div>
@@ -484,7 +440,9 @@ const Dashboard = () => {
             </div>
 
             <div className="profile-modal-actions">
-              <button className="btn-secondary" onClick={() => setProfileOpen(false)}>Close</button>
+              <button className="btn-secondary" onClick={() => setProfileOpen(false)}>
+                Close
+              </button>
             </div>
           </div>
         </div>
