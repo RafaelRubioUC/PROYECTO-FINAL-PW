@@ -47,7 +47,7 @@ function Login() {
         alert("¡Bienvenido! Sesión iniciada.");
 
         // Redirigir al Dashboard o Home
-        navigate("/");
+        navigate("/dashboard"); // <--- Navega al dashboard
       } else {
         // Error (contraseña mal, usuario no existe)
         alert(data.message || "Error al iniciar sesión");

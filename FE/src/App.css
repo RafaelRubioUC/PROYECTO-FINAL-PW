@@ -1070,3 +1070,527 @@ main {
 .auth-link--inline:hover {
   text-decoration: underline;
 }
+
+/* ===================== DASHBOARD ===================== */
+
+.dashboard-layout {
+  position: relative;
+  display: flex;              /* <--- CLAVE: hace que aside y main estén a la par */
+  align-items: stretch;
+  min-height: 100vh;           /* ocupa el alto disponible del main */
+}
+
+/* SIDEBAR */
+/* Botón flotante que colapsa / expande el sidebar */
+.sidebar-toggle {
+  position: absolute;
+  top: 1rem;
+  left: 250px;               /* pegado al borde derecho del sidebar abierto */
+  transform: translateX(-50%);
+  z-index: 40;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+  transition:
+    left 0.25s ease,
+    background-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.sidebar-toggle:hover {
+  background-color: #f9fafb;
+  transform: translateX(-50%) scale(1.03);
+}
+
+/* Cuando el layout está colapsado, movemos la flecha hacia la izquierda */
+.dashboard-layout--collapsed .sidebar-toggle {
+  left: 1rem;
+}
+
+.dashboard-sidebar {
+  flex: 0 0 240px;            /* ancho fijo mientras está abierto */
+  width: 240px;
+  background-color: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1.25rem;
+
+  transition:
+    flex-basis 0.25s ease,
+    width 0.25s ease,
+    padding 0.25s ease,
+    border-right 0.25s ease;
+}
+
+/* Sidebar colapsado: no ocupa espacio */
+.dashboard-sidebar.collapsed {
+  flex-basis: 0;              /* CLAVE: hace que el ancho sea 0 en el flex */
+  width: 0;
+  padding: 0;
+  border-right: none;
+  overflow: hidden;
+}
+
+.dashboard-main {
+  flex: 1;
+  padding: 1.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  transition: padding 0.25s ease;
+}
+
+.dashboard-layout--collapsed .dashboard-main {
+  padding-left: 2.5rem; /* o el valor que te guste */
+}
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 2rem;
+}
+
+.sidebar-logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.sidebar-logo-text {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #111827;
+}
+
+.sidebar-logo-text span {
+  color: #16a34a;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.6rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #4b5563;
+  transition:
+    background-color 0.15s ease-out,
+    color 0.15s ease-out,
+    transform 0.1s ease-out;
+}
+
+.sidebar-item svg {
+  font-size: 1.1rem;
+}
+
+.sidebar-item:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+  transform: translateX(2px);
+}
+
+.sidebar-item.active {
+  background-color: #ecfdf5;
+  color: #16a34a;
+}
+
+/* Botón de cuenta */
+
+.sidebar-account {
+  margin-top: auto;           /* CLAVE: empuja el botón al fondo del flex */
+  margin-bottom: 0.5rem;      /* (opcional) pequeña separación del borde */
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.8rem;
+  border: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease-out,
+    box-shadow 0.15s ease-out,
+    transform 0.1s ease-out;
+}
+
+.sidebar-account-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background-color: #ecfdf5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #16a34a;
+}
+
+.sidebar-account-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-account-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.sidebar-account-role {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.sidebar-account:hover {
+  background-color: #ffffff;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+/* Backdrop del drawer (por defecto oculto, solo móvil lo activa) */
+.sidebar-backdrop {
+  display: none;
+}
+
+/* ====== MÓVIL: comportamiento tipo drawer ====== */
+@media (max-width: 768px) {
+  .dashboard-layout {
+    min-height: 100vh;
+  }
+
+  /* Sidebar se convierte en panel fijo que entra/sale con translateX */
+  .dashboard-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 50;
+    flex: none;
+    width: 260px;
+    max-width: 75%;
+    box-shadow: 10px 0 25px rgba(15, 23, 42, 0.25);
+    transform: translateX(0);
+    border-right: none;
+  }
+
+  /* En móvil, “colapsado” = fuera de pantalla hacia la izquierda */
+  .dashboard-sidebar.collapsed {
+    flex: none;
+    width: 260px;
+    padding: 1.5rem 1.25rem;
+    transform: translateX(-100%);
+    overflow: visible;
+  }
+
+  /* Main siempre ocupa todo el ancho, no necesita extra padding */
+  .dashboard-main {
+    padding: 1.25rem 1.25rem 2rem 1.25rem;
+  }
+
+  .dashboard-layout--collapsed .dashboard-main {
+    padding-left: 1.25rem;
+  }
+
+  /* La flecha se pega a la esquina superior izquierda */
+  .sidebar-toggle {
+    top: 1rem;
+    left: 1rem;
+    transform: none;
+    z-index: 60;
+  }
+
+  .sidebar-toggle:hover {
+    transform: scale(1.03);
+  }
+
+  /* Overlay oscuro detrás del drawer */
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.35);
+    z-index: 40;
+  }
+}
+
+/* CONTENIDO PRINCIPAL */
+
+.dashboard-main {
+  flex: 1;
+  padding: 1.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.dashboard-subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* Filas de tarjetas */
+
+.dashboard-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.dashboard-row--middle {
+  grid-template-columns: 2fr 1.1fr;
+}
+
+/* Tarjetas pequeñas */
+
+.summary-card {
+  background-color: #ffffff;
+  border-radius: 0.9rem;
+  padding: 1.1rem 1.25rem;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+  border: 1px solid #e5e7eb;
+}
+
+.summary-label {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.summary-value {
+  margin: 0.4rem 0 0.3rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.summary-change {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.summary-change.positive {
+  color: #16a34a;
+}
+
+.summary-change.negative {
+  color: #dc2626;
+}
+
+/* Paneles grandes */
+
+.panel-card {
+  background-color: #ffffff;
+  border-radius: 0.9rem;
+  padding: 1.1rem 1.25rem 1.25rem;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.panel-card.full-width {
+  grid-column: 1 / -1;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.panel-header--with-filter {
+  margin-bottom: 0.5rem;
+}
+
+.panel-filter {
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.85rem;
+  background-color: #f9fafb;
+}
+
+/* Presupuesto */
+
+.budget-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.budget-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.budget-amount {
+  color: #6b7280;
+}
+
+.budget-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background-color: #e5e7eb;
+  overflow: hidden;
+}
+
+.budget-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+}
+
+.budget-bar-fill--green {
+  background-color: #22c55e;
+}
+
+.budget-bar-fill--yellow {
+  background-color: #eab308;
+}
+
+.budget-bar-fill--red {
+  background-color: #ef4444;
+}
+
+/* Transacciones recientes */
+
+.transactions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.transaction-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.transaction-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.transaction-icon--green {
+  background-color: #ecfdf5;
+}
+
+.transaction-icon--blue {
+  background-color: #eff6ff;
+}
+
+.transaction-icon--purple {
+  background-color: #f5f3ff;
+}
+
+.transaction-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.transaction-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.transaction-meta {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.transaction-amount {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.transaction-amount.positive {
+  color: #16a34a;
+}
+
+.transaction-amount.negative {
+  color: #dc2626;
+}
+
+.transactions-view-all {
+  margin-top: 0.75rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.6rem;
+  border: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  font-size: 0.85rem;
+  cursor: pointer;
+  align-self: stretch;
+}
+
+.transactions-view-all:hover {
+  background-color: #f3f4f6;
+}
+
+/* Placeholder del gráfico */
+
+.chart-placeholder {
+  height: 220px;
+  border-radius: 0.8rem;
+  border: 1px dashed #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+/* Responsivo simple */
+
+@media (max-width: 1024px) {
+  .dashboard-row {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-main {
+    padding: 1.25rem;
+  }
+}
