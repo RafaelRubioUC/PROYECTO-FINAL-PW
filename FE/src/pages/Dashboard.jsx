@@ -186,8 +186,17 @@ const Dashboard = () => {
                   <FiUser />
                 </div>
                 <div className="account-dropdown-meta">
-                  <div className="account-dropdown-name">John Doe</div>
-                  <div className="account-dropdown-email">john.doe@example.com</div>
+                  <div className="account-dropdown-name">
+                    {userData.name
+                      ? (() => {
+                          const parts = userData.name.split(" ");
+                          if (parts.length > 2) {
+                            return `${parts[0]} ${parts[2]}`;
+                          }
+                          return userData.name;
+                        })()
+                      : "Usuario"}
+                  </div>
                 </div>
               </div>
 
