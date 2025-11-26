@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   FiHome,
   FiList,
@@ -8,6 +8,10 @@ import {
   FiUser,
   FiChevronLeft,
   FiChevronRight,
+  FiBell,
+  FiCreditCard,
+  FiHelpCircle,
+  FiLogOut,
 } from "react-icons/fi";
 
 const Dashboard = () => {
@@ -31,6 +35,43 @@ const Dashboard = () => {
   };
 
   const toggleSidebar = () => setSidebarCollapsed((prev) => !prev);
+
+  // Account dropdown state and ref
+  const accountRef = useRef(null);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  const [userData] = useState({
+    name: "John Doe",
+    email: "john.doe@example.com",
+    phone: "+1 (555) 123-4567",
+    location: "New York, USA",
+    joinDate: "Jan 2023",
+  });
+
+  // Handle sign out
+  const handleSignOut = () => {
+    // Limpiar sesión del localStorage
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    
+    // Cerrar el dropdown
+    setAccountOpen(false);
+    
+    // Redirigir a login (cambiar según tu estructura de rutas)
+    window.location.href = "/login";
+  };
+
+  useEffect(() => {
+    function handleDocClick(e) {
+      if (accountRef.current && !accountRef.current.contains(e.target)) {
+        setAccountOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleDocClick);
+    return () => document.removeEventListener("mousedown", handleDocClick);
+  }, []);
 
   return (
     <div
@@ -117,15 +158,64 @@ const Dashboard = () => {
           </button>
         </nav>
 
-        <button className="sidebar-account">
-          <div className="sidebar-account-icon">
-            <FiUser />
-          </div>
-          <div className="sidebar-account-info">
-            <span className="sidebar-account-name">John Doe</span>
-            <span className="sidebar-account-role">Account</span>
-          </div>
-        </button>
+        {/* Account with dropdown */}
+        <div className="sidebar-account-container" ref={accountRef}>
+          <button
+            className="sidebar-account"
+            type="button"
+            aria-expanded={accountOpen}
+            onClick={() => setAccountOpen((s) => !s)}
+          >
+            <div className="sidebar-account-icon">
+              <FiUser />
+            </div>
+            <div className="sidebar-account-info">
+              <span className="sidebar-account-name">John Doe</span>
+              <span className="sidebar-account-role">john.doe@example.com</span>
+            </div>
+          </button>
+
+          {accountOpen && (
+            <div className="account-dropdown-menu" role="menu">
+              <div className="account-dropdown-header">
+                <div className="account-dropdown-avatar">
+                  <FiUser />
+                </div>
+                <div className="account-dropdown-meta">
+                  <div className="account-dropdown-name">John Doe</div>
+                  <div className="account-dropdown-email">john.doe@example.com</div>
+                </div>
+              </div>
+
+              <button
+                className="account-menu-item"
+                role="menuitem"
+                onClick={() => {
+                  setProfileOpen(true);
+                  setAccountOpen(false);
+                }}
+              >
+                <FiUser className="account-menu-icon" /> Profile
+              </button>
+
+              <button className="account-menu-item" role="menuitem">
+                <FiCreditCard className="account-menu-icon" /> Billing
+              </button>
+
+              <button className="account-menu-item" role="menuitem">
+                <FiHelpCircle className="account-menu-icon" /> Help & Support
+              </button>
+
+              <button 
+                className="account-menu-item account-menu-item--logout" 
+                role="menuitem"
+                onClick={handleSignOut}
+              >
+                <FiLogOut className="account-menu-icon" /> Sign Out
+              </button>
+            </div>
+          )}
+        </div>
       </aside>
 
       {/* ===== CONTENIDO PRINCIPAL ===== */}
@@ -351,6 +441,54 @@ const Dashboard = () => {
           </section>
         )}
       </main>
+
+      {profileOpen && (
+        <div className="profile-modal-overlay" onClick={() => setProfileOpen(false)}>
+          <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="profile-modal-header">
+              <h2 style={{ margin: 0 }}>Profile</h2>
+              <button className="btn-close" onClick={() => setProfileOpen(false)} aria-label="Close profile">×</button>
+            </div>
+
+            <div className="profile-modal-body">
+              <div className="profile-avatar">
+                {userData.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .slice(0, 2)
+                  .join("")}
+              </div>
+
+              <div className="profile-info-grid">
+                <div>
+                  <div className="profile-info-label">Name</div>
+                  <div className="profile-info-value">{userData.name}</div>
+                </div>
+                <div>
+                  <div className="profile-info-label">Email</div>
+                  <div className="profile-info-value">{userData.email}</div>
+                </div>
+                <div>
+                  <div className="profile-info-label">Phone</div>
+                  <div className="profile-info-value">{userData.phone}</div>
+                </div>
+                <div>
+                  <div className="profile-info-label">Location</div>
+                  <div className="profile-info-value">{userData.location}</div>
+                </div>
+                <div>
+                  <div className="profile-info-label">Member since</div>
+                  <div className="profile-info-value">{userData.joinDate}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="profile-modal-actions">
+              <button className="btn-secondary" onClick={() => setProfileOpen(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
