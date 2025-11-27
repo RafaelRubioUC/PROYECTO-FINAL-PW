@@ -211,6 +211,10 @@ const Dashboard = () => {
               </button>
 
               <button className="account-menu-item" role="menuitem">
+                <FiSettings className="account-menu-icon" /> Settings
+              </button>
+
+              <button className="account-menu-item" role="menuitem">
                 <FiHelpCircle className="account-menu-icon" /> Help & Support
               </button>
 
