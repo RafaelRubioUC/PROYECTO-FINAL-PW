@@ -59,7 +59,6 @@ const Dashboard = () => {
   const sectionSubtitles = {
     recap: "Resumen de tus finanzas personales",
     transactions: "Gestiona y revisa tus movimientos",
-    budget: "Configura tus presupuestos por categoría",
     reports: "Visualiza reportes y estadísticas",
   };
 

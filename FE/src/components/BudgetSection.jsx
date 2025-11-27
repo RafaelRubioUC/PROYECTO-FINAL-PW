@@ -1,188 +1,196 @@
-import React, { useMemo } from "react";
-import { INITIAL_TRANSACTIONS } from "./TransactionsSection";
+import React, { useState, useEffect, useMemo } from "react";
 
-const CATEGORY_BUDGETS = {
-  "Food & Dining": 300,
-  Leisure: 150,
-  Subscriptions: 50,
-};
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 function BudgetSection() {
-  const expenseByCategory = useMemo(() => {
-    const map = new Map();
+  const [transactions, setTransactions] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCatId, setSelectedCatId] = useState(""); // ID de la categoría seleccionada
+  const [loading, setLoading] = useState(true);
 
-    INITIAL_TRANSACTIONS.forEach((tx) => {
-      if (tx.type !== "expense") return;
-      const prev = map.get(tx.category) || 0;
-      map.set(tx.category, prev + tx.amount);
-    });
+  // --- 1. CARGAR DATOS ---
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        const headers = { Authorization: `Bearer ${token}` };
 
-    const result = Array.from(map.entries()).map(([category, spent]) => {
-      const budget =
-        CATEGORY_BUDGETS[category] !== undefined
-          ? CATEGORY_BUDGETS[category]
-          : spent * 1.5; // Si no se asigna un presupuesto definido este es un falback sencillo //
+        const [resCat, resTx] = await Promise.all([
+          fetch(`${API_URL}/api/categories`, { headers }),
+          fetch(`${API_URL}/api/transactions`, { headers }),
+        ]);
 
-      const remaining = budget - spent;
-      const utilization = budget > 0 ? (spent / budget) * 100 : 0;
+        const dataCat = await resCat.json();
+        const dataTx = await resTx.json();
 
-      let status = "Dentro del límite";
-      if (utilization > 100) status = "Fuera del límite";
-      else if (utilization > 80) status = "Cerca del límite";
-
-      return {
-        category,
-        budget,
-        spent,
-        remaining,
-        utilization,
-        status,
-      };
-    });
-
-    // Ordenamos por gasto más alto //
-    result.sort((a, b) => b.spent - a.spent);
-
-    return result;
+        if (dataCat.success) setCategories(dataCat.data);
+        if (dataTx.success) setTransactions(dataTx.data);
+      } catch (error) {
+        console.error("Error cargando budget:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
-  const totals = useMemo(() => {
-    const totalBudget = expenseByCategory.reduce(
-      (sum, c) => sum + c.budget,
-      0
-    );
-    const totalSpent = expenseByCategory.reduce(
-      (sum, c) => sum + c.spent,
-      0
-    );
-    const avgUtilization =
-      expenseByCategory.length > 0
-        ? expenseByCategory.reduce(
-            (sum, c) => sum + c.utilization,
-            0
-          ) / expenseByCategory.length
-        : 0;
+  // --- 2. CÁLCULOS MATEMÁTICOS ---
+  const budgetData = useMemo(() => {
+    // A. Calcular INGRESO TOTAL (La base del 100%)
+    const totalIncome = transactions
+      .filter((tx) => parseFloat(tx.amount) > 0)
+      .reduce((acc, tx) => acc + parseFloat(tx.amount), 0);
 
-    return { totalBudget, totalSpent, avgUtilization };
-  }, [expenseByCategory]);
+    // B. Calcular GASTO de la categoría seleccionada
+    let selectedCategoryName = "Selecciona una categoría";
+    let selectedCategoryColor = "#cbd5e1";
+    let categoryExpense = 0;
 
-  const formatMoney = (value) =>
-    value.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+    if (selectedCatId) {
+      const category = categories.find((c) => c.id === parseInt(selectedCatId));
+      if (category) {
+        selectedCategoryName = category.name;
+        selectedCategoryColor = category.color;
+
+        // Sumar solo gastos (negativos) de esa categoría
+        categoryExpense = transactions
+          .filter((tx) => tx.category_id === parseInt(selectedCatId) && parseFloat(tx.amount) < 0)
+          .reduce((acc, tx) => acc + Math.abs(parseFloat(tx.amount)), 0);
+      }
+    }
+
+    // C. Calcular Porcentaje
+    // Si no hay ingresos, evitamos división por cero
+    const percentage = totalIncome > 0 ? (categoryExpense / totalIncome) * 100 : 0;
+
+    return {
+      totalIncome,
+      categoryName: selectedCategoryName,
+      categoryColor: selectedCategoryColor,
+      categoryExpense,
+      percentage: percentage.toFixed(1), // Solo 1 decimal (ej: 25.5%)
+    };
+  }, [transactions, categories, selectedCatId]);
+
+  const formatMoney = (amount) => Number(amount).toLocaleString("en-US", { style: "currency", currency: "USD" });
+
+  if (loading) return <div style={{ padding: "20px" }}>Cargando presupuesto...</div>;
 
   return (
     <section className="dashboard-row">
-      <div className="panel-card full-width budget-panel">
-        {/* Header */}
-        <div className="budget-header">
+      <div className="panel-card full-width">
+        <div className="panel-header">
           <div>
-            <h3 className="budget-title">Budget</h3>
-            <p className="budget-subtitle">
-              Revisa cuánto has gastado por categoría y qué tan cerca estás de
-              tus límites.
-            </p>
+            <p className="dashboard-subtitle">Analiza cuánto de tus ingresos totales consume cada categoría.</p>
           </div>
         </div>
 
-        {/* Resumen */}
-        <div className="budget-summary-row">
-          <div className="budget-summary-card">
-            <span className="budget-summary-label">Presupuesto total</span>
-            <span className="budget-summary-value">
-              ${formatMoney(totals.totalBudget)}
-            </span>
+        <div className="budget-container" style={{ padding: "10px 0" }}>
+          {/* 1. TARJETA DE INGRESO TOTAL */}
+          <div
+            style={{
+              background: "#f0fdf4",
+              border: "1px solid #bbf7d0",
+              borderRadius: "12px",
+              padding: "20px",
+              marginBottom: "30px",
+              textAlign: "center",
+            }}
+          >
+            <p style={{ color: "#166534", fontWeight: "600", marginBottom: "5px" }}>INGRESO TOTAL REGISTRADO</p>
+            <h1 style={{ color: "#15803d", fontSize: "2.5rem", margin: 0 }}>{formatMoney(budgetData.totalIncome)}</h1>
           </div>
 
-          <div className="budget-summary-card">
-            <span className="budget-summary-label">Total gastado</span>
-            <span className="budget-summary-value">
-              ${formatMoney(totals.totalSpent)}
-            </span>
-          </div>
-
-          <div className="budget-summary-card">
-            <span className="budget-summary-label">Promedio del porcentaje de la cantidad usada</span>
-            <span className="budget-summary-value">
-              {totals.avgUtilization.toFixed(1)}%
-            </span>
-          </div>
-        </div>
-
-        {/* Tabla de categorías */}
-        <div className="budget-table-wrapper">
-          <table className="budget-table">
-            <thead>
-              <tr>
-                <th>Categoría</th>
-                <th>Presupuesto</th>
-                <th>Gastado</th>
-                <th>Restante</th>
-                <th>Cantidad usada</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {expenseByCategory.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="budget-empty">
-                    No se encontraron categorías de gastos en tus transacciones.
-                  </td>
-                </tr>
-              )}
-
-              {expenseByCategory.map((cat) => (
-                <tr key={cat.category}>
-                  <td>{cat.category}</td>
-                  <td>${formatMoney(cat.budget)}</td>
-                  <td>${formatMoney(cat.spent)}</td>
-                  <td
-                    className={
-                      cat.remaining < 0 ? "budget-negative" : undefined
-                    }
-                  >
-                    {cat.remaining < 0 ? "-" : ""}
-                    ${formatMoney(Math.abs(cat.remaining))}
-                  </td>
-                  <td>
-                    <div className="budget-progress-wrapper">
-                      <div className="budget-progress-bar">
-                        <div
-                          className={`budget-progress-fill ${
-                            cat.utilization > 100
-                              ? "budget-progress-fill--over"
-                              : cat.utilization > 80
-                              ? "budget-progress-fill--warning"
-                              : "budget-progress-fill--ok"
-                          }`}
-                          style={{
-                            width: `${Math.min(cat.utilization, 120)}%`,
-                          }}
-                        />
-                      </div>
-                      <span className="budget-progress-label">
-                        {cat.utilization.toFixed(1)}%
-                      </span>
-                    </div>
-                  </td>
-                  <td>
-                    <span
-                      className={`budget-status-pill ${
-                        cat.status === "Over budget"
-                          ? "budget-status-pill--danger"
-                          : cat.status === "Close to limit"
-                          ? "budget-status-pill--warning"
-                          : "budget-status-pill--ok"
-                      }`}
-                    >
-                      {cat.status}
-                    </span>
-                  </td>
-                </tr>
+          {/* 2. SELECTOR DE CATEGORÍA */}
+          <div className="form-group" style={{ maxWidth: "400px", margin: "0 auto 30px auto" }}>
+            <label style={{ textAlign: "center", display: "block", marginBottom: "10px" }}>
+              ¿Qué categoría quieres analizar?
+            </label>
+            <select
+              value={selectedCatId}
+              onChange={(e) => setSelectedCatId(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "12px",
+                borderRadius: "8px",
+                border: "1px solid #cbd5e1",
+                fontSize: "1rem",
+              }}
+            >
+              <option value="">-- Elige una categoría --</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
               ))}
-            </tbody>
-          </table>
+            </select>
+          </div>
+
+          {/* 3. VISUALIZACIÓN DE BARRAS (Solo si seleccionó algo) */}
+          {selectedCatId && (
+            <div className="budget-visualization" style={{ animation: "fadeIn 0.5s ease" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "10px",
+                  alignItems: "flex-end",
+                }}
+              >
+                <div>
+                  <h4 style={{ margin: 0, color: "#64748b" }}>Gastado en {budgetData.categoryName}</h4>
+                  <h2 style={{ margin: 0, color: "#1e293b" }}>{formatMoney(budgetData.categoryExpense)}</h2>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <h2 style={{ margin: 0, color: budgetData.categoryColor }}>{budgetData.percentage}%</h2>
+                  <span style={{ fontSize: "0.85rem", color: "#94a3b8" }}>de tus ingresos</span>
+                </div>
+              </div>
+
+              {/* LA BARRITA (PROGRESS BAR) */}
+              <div
+                style={{
+                  height: "24px",
+                  width: "100%",
+                  backgroundColor: "#f1f5f9",
+                  borderRadius: "12px",
+                  overflow: "hidden",
+                  position: "relative",
+                  border: "1px solid #e2e8f0",
+                }}
+              >
+                {/* Barra de progreso animada */}
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${Math.min(budgetData.percentage, 100)}%`, // Tope visual en 100%
+                    backgroundColor: budgetData.categoryColor,
+                    transition: "width 1s ease-in-out",
+                    borderRadius: "12px",
+                  }}
+                />
+              </div>
+
+              {/* Mensaje de contexto */}
+              <p style={{ marginTop: "15px", fontSize: "0.9rem", color: "#64748b", textAlign: "center" }}>
+                Has utilizado el <b>{budgetData.percentage}%</b> de todo el dinero que ingresaste en{" "}
+                <b>{budgetData.categoryName}</b>.
+                {parseFloat(budgetData.percentage) > 50 && (
+                  <span style={{ display: "block", color: "#ef4444", fontWeight: "bold", marginTop: "5px" }}>
+                    ¡Cuidado! Esta categoría consume más de la mitad de tus ingresos.
+                  </span>
+                )}
+              </p>
+            </div>
+          )}
+
+          {/* Mensaje si no selecciona nada */}
+          {!selectedCatId && (
+            <div style={{ textAlign: "center", color: "#94a3b8", padding: "20px" }}>
+              Selecciona una categoría arriba para ver el impacto en tu presupuesto.
+            </div>
+          )}
         </div>
       </div>
     </section>

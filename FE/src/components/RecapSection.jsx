@@ -1,17 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react";
-// Importamos los componentes del gráfico
+// Solo importamos lo necesario para el gráfico de Área
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 function RecapSection({ onViewAllTransactions }) {
-  const [summary, setSummary] = useState({
-    balance: 0,
-    income: 0,
-    expenses: 0,
-  });
+  const [summary, setSummary] = useState({ balance: 0, income: 0, expenses: 0 });
   const [recentTransactions, setRecentTransactions] = useState([]);
-  const [allTransactions, setAllTransactions] = useState([]); // Guardamos todas para el gráfico
+  const [allTransactions, setAllTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,17 +15,16 @@ function RecapSection({ onViewAllTransactions }) {
       try {
         const token = localStorage.getItem("token");
         if (!token) return;
+        const headers = { Authorization: `Bearer ${token}` };
 
-        const response = await fetch(`${API_URL}/api/transactions`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch(`${API_URL}/api/transactions`, { headers });
         const data = await response.json();
 
         if (data.success) {
           const allTx = data.data;
-          setAllTransactions(allTx); // Guardamos para el gráfico
+          setAllTransactions(allTx);
 
-          // 1. Calcular Totales
+          // Calcular Totales
           let income = 0;
           let expense = 0;
 
@@ -45,7 +40,6 @@ function RecapSection({ onViewAllTransactions }) {
             expenses: expense,
           });
 
-          // 2. Últimas 4 transacciones
           setRecentTransactions(allTx.slice(0, 4));
         }
       } catch (error) {
@@ -58,21 +52,17 @@ function RecapSection({ onViewAllTransactions }) {
     fetchData();
   }, []);
 
-  // --- LÓGICA PARA EL GRÁFICO (Últimos 7 días) ---
-  const chartData = useMemo(() => {
+  // --- GRÁFICO DE ÁREA (TIEMPO) ---
+  const areaData = useMemo(() => {
     const data = [];
     const today = new Date();
-
-    // Generar los últimos 7 días
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(today.getDate() - i);
-      const dateStr = d.toISOString().split("T")[0]; // "2025-11-27"
+      const dateStr = d.toISOString().split("T")[0];
 
-      // Buscar transacciones de este día
       const dayTxs = allTransactions.filter((tx) => tx.date.startsWith(dateStr));
 
-      // Sumar ingresos y gastos del día
       const income = dayTxs.reduce((acc, tx) => (parseFloat(tx.amount) > 0 ? acc + parseFloat(tx.amount) : acc), 0);
       const expense = dayTxs.reduce(
         (acc, tx) => (parseFloat(tx.amount) < 0 ? acc + Math.abs(parseFloat(tx.amount)) : acc),
@@ -80,7 +70,7 @@ function RecapSection({ onViewAllTransactions }) {
       );
 
       data.push({
-        name: d.toLocaleDateString("es-ES", { day: "numeric", month: "short" }), // "27 nov"
+        name: d.toLocaleDateString("es-ES", { day: "numeric", month: "short" }),
         Ingresos: income,
         Gastos: expense,
       });
@@ -88,16 +78,11 @@ function RecapSection({ onViewAllTransactions }) {
     return data;
   }, [allTransactions]);
 
-  const formatMoney = (amount) => {
-    return Number(amount).toLocaleString("en-US", {
-      style: "currency",
-      currency: "USD",
-    });
-  };
+  const formatMoney = (amount) => Number(amount).toLocaleString("en-US", { style: "currency", currency: "USD" });
 
   return (
     <>
-      {/* TARJETAS SUPERIORES */}
+      {/* 1. TARJETAS SUPERIORES */}
       <section className="dashboard-row">
         <div className="summary-card">
           <p className="summary-label">Balance total</p>
@@ -122,27 +107,39 @@ function RecapSection({ onViewAllTransactions }) {
         </div>
       </section>
 
+      {/* 2. FILA PRINCIPAL: GRÁFICO (IZQ) Y LISTA (DER) */}
       <section className="dashboard-row dashboard-row--middle">
-        {/* PRESUPUESTO (Placeholder) */}
+        {/* --- GRÁFICO DE INGRESOS VS GASTOS (Movido aquí) --- */}
         <div className="panel-card">
-          <div className="panel-header">
-            <h3>Presupuesto mensual</h3>
+          <div className="panel-header panel-header--with-filter">
+            <h3>Flujo de Dinero (7 días)</h3>
           </div>
-          <div
-            className="chart-placeholder"
-            style={{
-              height: "200px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#94a3b8",
-            }}
-          >
-            Próximamente...
+
+          <div style={{ width: "100%", height: 300 }}>
+            <ResponsiveContainer>
+              <AreaChart data={areaData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorIngresos" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorGastos" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="name" style={{ fontSize: "0.8rem" }} />
+                <YAxis style={{ fontSize: "0.8rem" }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <Tooltip />
+                <Area type="monotone" dataKey="Ingresos" stroke="#10b981" fillOpacity={1} fill="url(#colorIngresos)" />
+                <Area type="monotone" dataKey="Gastos" stroke="#ef4444" fillOpacity={1} fill="url(#colorGastos)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
-        {/* TRANSACCIONES RECIENTES */}
+        {/* --- LISTA DE RECIENTES --- */}
         <div className="panel-card">
           <div className="panel-header">
             <h3>Transacciones recientes</h3>
@@ -169,41 +166,6 @@ function RecapSection({ onViewAllTransactions }) {
           <button className="transactions-view-all" onClick={onViewAllTransactions}>
             Ver todas
           </button>
-        </div>
-      </section>
-
-      {/* --- GRÁFICO REAL (RECHARTS) --- */}
-      <section className="dashboard-row">
-        <div className="panel-card full-width">
-          <div className="panel-header panel-header--with-filter">
-            <h3>Ingresos vs Gastos</h3>
-            <select className="panel-filter">
-              <option>Últimos 7 días</option>
-            </select>
-          </div>
-
-          <div style={{ width: "100%", height: 300 }}>
-            <ResponsiveContainer>
-              <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorIngresos" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="colorGastos" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <Tooltip />
-                <Area type="monotone" dataKey="Ingresos" stroke="#10b981" fillOpacity={1} fill="url(#colorIngresos)" />
-                <Area type="monotone" dataKey="Gastos" stroke="#ef4444" fillOpacity={1} fill="url(#colorGastos)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
         </div>
       </section>
     </>
