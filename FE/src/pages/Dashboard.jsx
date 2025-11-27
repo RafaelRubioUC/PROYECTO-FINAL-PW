@@ -245,7 +245,11 @@ const Dashboard = () => {
           </div>
         </header>
 
-        {activeTab === "recap" && <RecapSection />}
+        {activeTab === "recap" && (
+          <RecapSection
+            onViewAllTransactions={() => setActiveTab("transactions")}
+          />
+        )}
 
         {activeTab === "transactions" && <TransactionsSection />}
 

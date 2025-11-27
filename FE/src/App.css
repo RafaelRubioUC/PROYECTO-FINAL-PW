@@ -2140,3 +2140,391 @@ main {
 .reports-insights-list li + li {
   margin-top: 0.35rem;
 }
+
+/* === Recap Section === */
+
+.recap-top-row .panel-card {
+  flex: 1;
+}
+
+.recap-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border-radius: 1rem;
+  padding: 1rem 1.1rem;
+}
+
+.recap-stat-card--balance {
+  border-left: 3px solid #0ea5e9;
+}
+
+.recap-stat-card--income {
+  border-left: 3px solid #16a34a;
+}
+
+.recap-stat-card--expense {
+  border-left: 3px solid #dc2626;
+}
+
+.recap-stat-label {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.recap-stat-value {
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.recap-stat-footnote {
+  font-size: 0.78rem;
+  color: #9ca3af;
+}
+
+/* Middle row */
+
+.recap-middle-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr); /* izquierda más grande */
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.recap-middle-row .panel-card {
+  width: 100%;
+}
+
+/* Ajustes para dispositivos con pantallas pequeñas (móvil) */
+@media (max-width: 900px) {
+  .recap-middle-row {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+/* Cartas genéricas dentro de recap */
+
+.recap-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.recap-card-title {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.recap-card-subtitle {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* Monthly Budget mini */
+
+.recap-budget-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.recap-budget-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.recap-budget-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.86rem;
+  color: #111827;
+}
+
+.recap-budget-category {
+  font-weight: 500;
+}
+
+.recap-budget-amount {
+  color: #4b5563;
+}
+
+.recap-budget-bar {
+  position: relative;
+  height: 0.45rem;
+  border-radius: 9999px;
+  background-color: #e5e7eb;
+  overflow: hidden;
+}
+
+.recap-budget-bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 9999px;
+}
+
+.recap-budget-bar-fill--ok {
+  background-color: #22c55e;
+}
+
+.recap-budget-bar-fill--warning {
+  background-color: #f97316;
+}
+
+.recap-budget-bar-fill--danger {
+  background-color: #dc2626;
+}
+
+/* Recent transactions mini */
+
+.recap-recent-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 0.7rem;
+}
+
+.recap-recent-item {
+  font-size: 0.85rem;
+}
+
+.recap-recent-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.recap-recent-description {
+  font-weight: 500;
+  color: #111827;
+}
+
+.recap-recent-amount {
+  font-weight: 600;
+}
+
+.recap-recent-amount--income {
+  color: #16a34a;
+}
+
+.recap-recent-amount--expense {
+  color: #dc2626;
+}
+
+.recap-recent-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.15rem;
+  color: #6b7280;
+  font-size: 0.78rem;
+}
+
+.recap-recent-button {
+  width: 100%;
+  margin-top: 0.25rem;
+  border-radius: 0.7rem;
+  border: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  font-size: 0.8rem;
+  padding: 0.45rem;
+  cursor: pointer;
+  color: #374151;
+}
+
+.recap-recent-button:hover {
+  background-color: #eff6ff;
+}
+
+/* Bottom row: chart placeholder */
+
+.recap-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.8rem;
+}
+
+.recap-chart-range {
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.6rem;
+  border: 1px solid #e5e7eb;
+  font-size: 0.8rem;
+  background-color: #ffffff;
+}
+
+.recap-chart-placeholder {
+  border-radius: 0.75rem;
+  border: 1px dashed #d1d5db;
+  background-color: #f9fafb;
+  padding: 2.2rem 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.recap-bottom-row {
+  display: flex;
+}
+
+.recap-bottom-row .recap-chart-card {
+  flex: 1;
+  max-width: none;
+  margin: 0;
+}
+
+/* === Diseño del gráfico === */
+
+.recap-chart-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 300px;
+}
+
+.recap-bottom-row {
+  display: flex;
+}
+
+.recap-bottom-row .recap-chart-card {
+  flex: 1;
+  max-width: none;
+  margin: 0;
+}
+
+.recap-chart-container {
+  flex: 1;
+  min-height: 280px;
+}
+
+/* Tooltip custom */
+.recap-tooltip {
+  /* Un fondo claro */
+  background: linear-gradient(
+    135deg,
+    #0f766e,
+    #22c55e,
+    #0ea5e9,
+    #16a34a
+  );
+  background-size: 220% 220%;
+  animation: recapTooltipGlow 9s ease-in-out infinite;
+
+  color: #ecfdf5;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.9rem;
+
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(15, 23, 42, 0.35);
+
+  font-size: 0.78rem;
+  max-width: 230px;
+}
+
+/* Animación al fondo del cuadrito */
+@keyframes recapTooltipGlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.recap-tooltip-date {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: #e5e7eb;
+}
+
+.recap-tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.12rem;
+}
+
+.recap-tooltip-income,
+.recap-tooltip-expense {
+  font-weight: 700;
+  padding: 0.05rem 0.3rem;
+  border-radius: 999px;
+
+  /* Relleno blanco para que se puedan leer los números */
+  color: #ffffff;
+
+  /* Fondo oscuro para contrastar los números */
+  background-color: rgba(15, 23, 42, 0.45);
+
+  /* Ligero brillo para que se vean más nitido los números */
+  text-shadow:
+    0 0 1px rgba(0, 0, 0, 0.6),
+    0 0 2px rgba(0, 0, 0, 0.4);
+}
+
+.recap-tooltip-income {
+  -webkit-text-stroke: 0.5px #22c55e;
+}
+
+.recap-tooltip-expense {
+  -webkit-text-stroke: 0.5px #ef4444;
+}
+
+.recap-tooltip-net {
+  margin-top: 0.3rem;
+  padding-top: 0.25rem;
+  border-top: 1px solid rgba(249, 250, 251, 0.14);
+}
+
+.recap-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.8rem;
+}
+
+.recap-chart-range {
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.6rem;
+  border: 1px solid #e5e7eb;
+  font-size: 0.8rem;
+  background-color: #ffffff;
+}
+
+.recap-chart-placeholder {
+  border-radius: 0.75rem;
+  border: 1px dashed #d1d5db;
+  background-color: #f9fafb;
+  padding: 2.2rem 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ajustes para dispositivos con pantallas pequeñas (móvil) */
+
+@media (max-width: 900px) {
+  .recap-top-row {
+    flex-direction: column;
+  }
+
+  .recap-middle-row {
+    flex-direction: column;
+  }
+}
