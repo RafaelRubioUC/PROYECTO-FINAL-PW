@@ -1820,3 +1820,157 @@ main {
 .account-dropdown-item--danger svg {
   color: #dc2626;
 }
+
+/* === Budget Section === */
+
+.budget-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.budget-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.budget-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.budget-subtitle {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.budget-summary-row {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .budget-summary-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.budget-summary-card {
+  border-radius: 0.9rem;
+  padding: 0.8rem 1rem;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.budget-summary-label {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.budget-summary-value {
+  display: block;
+  margin-top: 0.2rem;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #111827;
+}
+
+/* Tabla */
+.budget-table-wrapper {
+  margin-top: 0.4rem;
+  border-radius: 0.9rem;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  background-color: #ffffff;
+}
+
+.budget-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.budget-table thead {
+  background: linear-gradient(90deg, #eff6ff, #ecfdf5);
+}
+
+.budget-table th,
+.budget-table td {
+  padding: 0.6rem 0.9rem;
+  text-align: left;
+}
+
+.budget-empty {
+  text-align: center;
+  padding: 1rem 0.5rem;
+  color: #6b7280;
+}
+
+.budget-negative {
+  color: #b91c1c;
+}
+
+/* Barra de progreso */
+.budget-progress-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.budget-progress-bar {
+  flex: 1;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: #e5e7eb;
+  overflow: hidden;
+}
+
+.budget-progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+}
+
+.budget-progress-fill--ok {
+  background-color: #22c55e;
+}
+
+.budget-progress-fill--warning {
+  background-color: #f97316;
+}
+
+.budget-progress-fill--over {
+  background-color: #dc2626;
+}
+
+.budget-progress-label {
+  font-size: 0.8rem;
+  color: #374151;
+}
+
+/* Estado */
+.budget-status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.budget-status-pill--ok {
+  background-color: #ecfdf5;
+  color: #15803d;
+}
+
+.budget-status-pill--warning {
+  background-color: #fffbeb;
+  color: #b45309;
+}
+
+.budget-status-pill--danger {
+  background-color: #fef2f2;
+  color: #b91c1c;
+}

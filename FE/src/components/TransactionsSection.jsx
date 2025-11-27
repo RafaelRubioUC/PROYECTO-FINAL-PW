@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 
-const INITIAL_TRANSACTIONS = [
+export const INITIAL_TRANSACTIONS = [ // Por el momento estos datos los exportaré hacia BudgetSection, ReportsSection y RecapSection para no tener que repetirlos //
   {
     id: 1,
     date: "2025-11-20",
