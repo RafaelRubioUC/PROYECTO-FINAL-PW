@@ -30,13 +30,9 @@ export const register = async (req, res) => {
 
     const newUser = await db.query(query, [name, email, hashedPassword]);
 
-    // D) Generar Token
-    const token = jwt.sign({ id: newUser.rows[0].id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-
     res.status(201).json({
       success: true,
       message: "Usuario registrado",
-      token,
       user: newUser.rows[0],
     });
   } catch (error) {
