@@ -38,11 +38,27 @@ function Login() {
       const data = await response.json(); //convierte en un objeto de javascript, extrae lo importante
 
       // 2. Verifica que la comunicacion http entre el navegador y el servidor fue exitosa
-      if (response.ok) {
-        // ¡Login Exitoso!
-        // Guardamos el token en el navegador para usarlo después
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
+      if (response.ok) { // Login exitoso //
+        const { token, user } = data; //Lo que devuelve el backend //
+
+        // Guarda el token con dos claves por si son usadas en otro lado //
+        if(token) {
+          localStorage.setItem("token", token);
+          localStorage.setItem("spendlist_token", token);
+        }
+
+        // Guarda el usuario completo + una versión plana para el Dashboard //
+        if(user) {
+          localStorage.setItem("spendlist_user", JSON.stringify(user));
+          localStorage.setItem(
+            "spendlist_user",
+            JSON.stringify({
+              id: user.id ?? user._id,
+              name: user.name,
+              email: user.email,
+            })
+          );
+        }
 
         alert("¡Bienvenido! Sesión iniciada.");
 

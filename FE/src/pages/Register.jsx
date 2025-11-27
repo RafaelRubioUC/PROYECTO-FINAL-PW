@@ -21,47 +21,71 @@ function Register() {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    // Validaciones del Frontend
-    if (form.password !== form.confirmPassword) {
-      alert("Las contraseñas no coinciden.");
-      return;
-    }
+  // Validaciones del Frontend
+  if (form.password !== form.confirmPassword) {
+    alert("Las contraseñas no coinciden.");
+    return;
+  }
 
-    if (!form.acceptTerms) {
-      alert("Debes aceptar los Términos y la Política de Privacidad.");
-      return;
-    }
+  if (!form.acceptTerms) {
+    alert("Debes aceptar los Términos y la Política de Privacidad.");
+    return;
+  }
 
-    try {
-      // Petición al Backend
-      const response = await fetch(`${API_URL}/api/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: form.name, // Enviamos el nombre (el backend ya sabe manejarlo)
-          email: form.email,
-          password: form.password,
-        }),
-      });
+  try {
+    // Petición al Backend
+    const response = await fetch(`${API_URL}/api/auth/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: form.name,   // Enviamos el nombre (el backend ya sabe manejarlo)
+        email: form.email,
+        password: form.password,
+      }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (response.ok) {
+    if (response.ok) {
+      const { token, user } = data;
+
+      if (token && user) {
+        // Guardamos token en dos keys (por si luego usamos spendlist_token)
+        localStorage.setItem("token", token);
+        localStorage.setItem("spendlist_token", token);
+
+        // Guardamos usuario completo y versión plana para el Dashboard
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem(
+          "spendlist_user",
+          JSON.stringify({
+            id: user.id ?? user._id,
+            name: user.name,
+            email: user.email,
+          })
+        );
+
+        alert("¡Cuenta creada exitosamente! Hemos iniciado tu sesión.");
+        navigate("/dashboard"); // Redirige de una vez al dashboard
+      } else {
+        // Backend no envió token/user, usamos flujo antiguo
         alert("¡Cuenta creada exitosamente! Ahora inicia sesión.");
         navigate("/login"); // Redirigir al login
-      } else {
-        alert(data.message || "Error al registrarse");
       }
-    } catch (error) {
-      console.error("Error de conexión:", error);
-      alert("No se pudo conectar con el servidor.");
+    } else {
+      // Registro NO ok: mostramos mensaje de error del backend
+      alert(data.message || "Error al registrarse");
     }
-  };
+  } catch (error) {
+    console.error("Error de conexión:", error);
+    alert("No se pudo conectar con el servidor.");
+  }
+};
 
   return (
     <section className="hero-pages">
