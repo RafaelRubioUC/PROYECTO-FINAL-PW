@@ -1,11 +1,11 @@
 import React, { useMemo, useState, useEffect } from "react";
 
-// --- ESTO ES PARA QUE NO SE ROMPAN LOS OTROS ARCHIVOS ---
+// --- LÍNEA DE SEGURIDAD PARA OTROS COMPONENTES ---
 export const INITIAL_TRANSACTIONS = [];
-// ------------------------------------------------------------
+// -------------------------------------------------
 
 // URL base (detecta si es local o nube)
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000"; // Fallback por seguridad
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 function TransactionsSection() {
   const [transactions, setTransactions] = useState([]);
@@ -18,23 +18,24 @@ function TransactionsSection() {
   const [periodFilter, setPeriodFilter] = useState("30d");
   const [sortOrder, setSortOrder] = useState("newest");
 
-  // Estados para el Modal (Formulario)
+  // Estados para el Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [txTypeMode, setTxTypeMode] = useState("expense");
+
   const [newTx, setNewTx] = useState({
     description: "",
     amount: "",
     category_id: "",
-    date: new Date().toISOString().split("T")[0], // Fecha de hoy YYYY-MM-DD
+    date: new Date().toISOString().split("T")[0],
   });
 
   const now = useMemo(() => new Date(), []);
 
-  // --- 1. CARGAR DATOS DEL BACKEND ---
+  // --- 1. CARGAR DATOS ---
   const fetchData = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
-
       const headers = { Authorization: `Bearer ${token}` };
 
       // Cargar Categorías
@@ -57,21 +58,22 @@ function TransactionsSection() {
     fetchData();
   }, []);
 
-  // --- 2. GUARDAR NUEVA TRANSACCIÓN ---
+  // --- 2. GUARDAR TRANSACCIÓN ---
   const handleSaveTransaction = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
 
     try {
-      // Validar monto negativo para gastos
       let finalAmount = parseFloat(newTx.amount);
+      let finalDescription = newTx.description;
+      let finalCategoryId = newTx.category_id;
 
-      // Buscamos la categoría seleccionada para saber si es Gasto o Ingreso
-      const selectedCat = categories.find((c) => c.id === parseInt(newTx.category_id));
-
-      // Si es un gasto (expense) y el usuario puso el número positivo, lo volvemos negativo
-      if (selectedCat && selectedCat.type === "expense" && finalAmount > 0) {
-        finalAmount = finalAmount * -1;
+      if (txTypeMode === "expense") {
+        if (finalAmount > 0) finalAmount = finalAmount * -1;
+      } else {
+        if (finalAmount < 0) finalAmount = Math.abs(finalAmount);
+        if (!finalDescription.trim()) finalDescription = "Ingreso";
+        finalCategoryId = null;
       }
 
       const response = await fetch(`${API_URL}/api/transactions`, {
@@ -81,18 +83,18 @@ function TransactionsSection() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          description: newTx.description,
+          description: finalDescription,
           amount: finalAmount,
           date: newTx.date,
-          category_id: newTx.category_id,
+          category_id: finalCategoryId,
         }),
       });
 
       if (response.ok) {
         alert("¡Transacción agregada!");
         setIsModalOpen(false);
-        setNewTx({ description: "", amount: "", category_id: "", date: "" });
-        fetchData(); // Recargar la tabla
+        setNewTx({ description: "", amount: "", category_id: "", date: new Date().toISOString().split("T")[0] });
+        fetchData();
       } else {
         alert("Error al guardar");
       }
@@ -101,12 +103,12 @@ function TransactionsSection() {
     }
   };
 
-  // --- LÓGICA DE FILTROS (Mantenida de tu código original) ---
+  // --- LÓGICA DE FILTROS ---
   const filteredSortedTransactions = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     const passesPeriod = (dateStr) => {
-      const txDate = new Date(dateStr); // Ajuste: backend devuelve ISO string a veces
+      const txDate = new Date(dateStr);
       const diffMs = now - txDate;
       const diffDays = diffMs / (1000 * 60 * 60 * 24);
 
@@ -125,9 +127,8 @@ function TransactionsSection() {
     };
 
     let result = transactions.filter((tx) => {
-      // Enriquecemos la tx con el nombre de la categoría para poder filtrar
-      const catName = categories.find((c) => c.id === tx.category_id)?.name || "Otros";
-      const type = tx.amount >= 0 ? "income" : "expense"; // Deducimos tipo por el monto
+      const catName = categories.find((c) => c.id === tx.category_id)?.name || "General";
+      const type = parseFloat(tx.amount) >= 0 ? "income" : "expense";
 
       if (!passesPeriod(tx.date)) return false;
       if (typeFilter !== "all" && type !== typeFilter) return false;
@@ -153,8 +154,7 @@ function TransactionsSection() {
   const formatAmount = (amount) =>
     Number(amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  // Función auxiliar para obtener nombre de categoría
-  const getCategoryName = (id) => categories.find((c) => c.id === id)?.name || "General";
+  const getCategoryName = (id) => categories.find((c) => c.id === id)?.name || "---";
   const getCategoryType = (amount) => (amount >= 0 ? "income" : "expense");
 
   return (
@@ -165,31 +165,26 @@ function TransactionsSection() {
             <h3 className="transactions-title">Transactions</h3>
             <p className="transactions-subtitle">Revisa y gestiona tus movimientos recientes.</p>
           </div>
-          <button
-            className="transactions-add-btn"
-            type="button"
-            onClick={() => setIsModalOpen(true)} // <--- ABRIR MODAL
-          >
+          <button className="transactions-add-btn" type="button" onClick={() => setIsModalOpen(true)}>
             + Añadir transacción
           </button>
         </div>
 
-        {/* Filtros */}
         <div className="transactions-filters">
           <div className="transactions-search-wrapper">
             <input
               type="text"
               className="transactions-search-input"
-              placeholder="Busca por descripción o categoría..."
+              placeholder="Busca..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <div className="transactions-filter-group">
             <select className="transactions-select" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
-              <option value="all">Todo tipo</option>
-              <option value="income">Ingreso</option>
-              <option value="expense">Gasto</option>
+              <option value="all">Todos</option>
+              <option value="income">Ingresos</option>
+              <option value="expense">Gastos</option>
             </select>
             <select
               className="transactions-select"
@@ -204,14 +199,16 @@ function TransactionsSection() {
             <select className="transactions-select" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
               <option value="newest">Más reciente</option>
               <option value="oldest">Más antiguo</option>
+              <option value="amountDesc">Cantidad (Mayor a Menor)</option>
+              <option value="amountAsc">Cantidad (Menor a Mayor)</option>
             </select>
           </div>
         </div>
 
-        {/* Tabla */}
+        {/* Tabla Limpia (Sin columna Estado) */}
         <div className="transactions-table-wrapper">
           {loading ? (
-            <p style={{ padding: "20px" }}>Cargando transacciones...</p>
+            <p style={{ padding: "20px" }}>Cargando...</p>
           ) : (
             <table className="transactions-table">
               <thead>
@@ -221,13 +218,13 @@ function TransactionsSection() {
                   <th>Categoría</th>
                   <th>Tipo</th>
                   <th>Cantidad</th>
-                  <th>Estado</th>
+                  {/* Columna Estado ELIMINADA */}
                 </tr>
               </thead>
               <tbody>
                 {filteredSortedTransactions.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="transactions-empty">
+                    <td colSpan={5} className="transactions-empty">
                       No hay transacciones registradas.
                     </td>
                   </tr>
@@ -238,7 +235,7 @@ function TransactionsSection() {
                     <tr key={tx.id}>
                       <td>{new Date(tx.date).toLocaleDateString()}</td>
                       <td>{tx.description}</td>
-                      <td>{getCategoryName(tx.category_id)}</td>
+                      <td>{tx.category_id ? getCategoryName(tx.category_id) : "Ingreso"}</td>
                       <td>
                         <span className={`tag-pill ${type === "income" ? "tag-pill--income" : "tag-pill--expense"}`}>
                           {type === "income" ? "Ingreso" : "Gasto"}
@@ -247,9 +244,7 @@ function TransactionsSection() {
                       <td className={`amount ${type === "income" ? "positive" : "negative"}`}>
                         {type === "income" ? "+ " : ""}$ {formatAmount(tx.amount)}
                       </td>
-                      <td>
-                        <span className="status-pill status-pill--cleared">Completado</span>
-                      </td>
+                      {/* Celda Estado ELIMINADA */}
                     </tr>
                   );
                 })}
@@ -259,7 +254,6 @@ function TransactionsSection() {
         </div>
       </div>
 
-      {/* ===== MODAL DE AÑADIR TRANSACCIÓN ===== */}
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -270,17 +264,72 @@ function TransactionsSection() {
               </button>
             </div>
 
+            <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+              <button
+                type="button"
+                onClick={() => setTxTypeMode("expense")}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  borderRadius: "8px",
+                  border: "none",
+                  background: txTypeMode === "expense" ? "#ef4444" : "#f1f5f9",
+                  color: txTypeMode === "expense" ? "white" : "#64748b",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                }}
+              >
+                GASTO 📉
+              </button>
+              <button
+                type="button"
+                onClick={() => setTxTypeMode("income")}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  borderRadius: "8px",
+                  border: "none",
+                  background: txTypeMode === "income" ? "#10b981" : "#f1f5f9",
+                  color: txTypeMode === "income" ? "white" : "#64748b",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                }}
+              >
+                INGRESO 📈
+              </button>
+            </div>
+
             <form onSubmit={handleSaveTransaction}>
-              <div className="form-group">
-                <label>Descripción</label>
-                <input
-                  type="text"
-                  placeholder="Ej: Comida rápida, Salario..."
-                  required
-                  value={newTx.description}
-                  onChange={(e) => setNewTx({ ...newTx, description: e.target.value })}
-                />
-              </div>
+              {txTypeMode === "expense" && (
+                <>
+                  <div className="form-group">
+                    <label>Descripción</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: Comida rápida..."
+                      required
+                      value={newTx.description}
+                      onChange={(e) => setNewTx({ ...newTx, description: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Categoría</label>
+                    <select
+                      required
+                      value={newTx.category_id}
+                      onChange={(e) => setNewTx({ ...newTx, category_id: e.target.value })}
+                    >
+                      <option value="">Selecciona una...</option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </>
+              )}
 
               <div className="form-group">
                 <label>Monto ($)</label>
@@ -292,22 +341,6 @@ function TransactionsSection() {
                   value={newTx.amount}
                   onChange={(e) => setNewTx({ ...newTx, amount: e.target.value })}
                 />
-              </div>
-
-              <div className="form-group">
-                <label>Categoría</label>
-                <select
-                  required
-                  value={newTx.category_id}
-                  onChange={(e) => setNewTx({ ...newTx, category_id: e.target.value })}
-                >
-                  <option value="">Selecciona una...</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name} ({cat.type === "income" ? "Ingreso" : "Gasto"})
-                    </option>
-                  ))}
-                </select>
               </div>
 
               <div className="form-group">
@@ -324,8 +357,12 @@ function TransactionsSection() {
                 <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)}>
                   Cancelar
                 </button>
-                <button type="submit" className="btn-save">
-                  Guardar Transacción
+                <button
+                  type="submit"
+                  className="btn-save"
+                  style={{ background: txTypeMode === "income" ? "#10b981" : "#ef4444" }}
+                >
+                  {txTypeMode === "income" ? "Guardar Ingreso" : "Guardar Gasto"}
                 </button>
               </div>
             </form>
