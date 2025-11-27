@@ -1,7 +1,7 @@
 body {
   margin: 0;
-  font-family:
-    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+    "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osk-font-smoothing: grayscale;
   background-color: #ffffff;
@@ -53,10 +53,7 @@ main {
 
   box-shadow: 0 10px 25px rgba(15, 23, 42, 0.7);
 
-  transition:
-    transform 0.18s ease-out,
-    box-shadow 0.18s ease-out,
-    border-color 0.2s ease-out,
+  transition: transform 0.18s ease-out, box-shadow 0.18s ease-out, border-color 0.2s ease-out,
     background-position 0.4s ease-out;
 }
 
@@ -66,8 +63,7 @@ main {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background:
-    radial-gradient(circle at 15% 0%, rgba(96, 165, 250, 0.18), transparent 60%),
+  background: radial-gradient(circle at 15% 0%, rgba(96, 165, 250, 0.18), transparent 60%),
     radial-gradient(circle at 85% 100%, rgba(52, 211, 153, 0.2), transparent 65%);
   opacity: 0.35;
   mix-blend-mode: screen;
@@ -154,10 +150,7 @@ main {
 
   box-shadow: 0 10px 25px rgba(15, 23, 42, 0.7);
 
-  transition:
-    transform 0.18s ease-out,
-    box-shadow 0.18s ease-out,
-    background-position 0.3s ease-out;
+  transition: transform 0.18s ease-out, box-shadow 0.18s ease-out, background-position 0.3s ease-out;
 }
 
 /* Efectos antes de pasar el ratón y hacer clic */
@@ -302,8 +295,7 @@ main {
   top: -30%;
   pointer-events: none;
 
-  background:
-    radial-gradient(circle at 20% 20%, rgba(190, 242, 100, 0.35), transparent 60%),
+  background: radial-gradient(circle at 20% 20%, rgba(190, 242, 100, 0.35), transparent 60%),
     radial-gradient(circle at 80% 80%, rgba(45, 212, 191, 0.3), transparent 60%),
     radial-gradient(circle at 60% 10%, rgba(56, 189, 248, 0.22), transparent 55%);
 
@@ -714,8 +706,7 @@ main {
   pointer-events: none;
   z-index: 0;
 
-  background:
-    radial-gradient(circle at 15% 20%, rgba(16, 185, 129, 0.5), transparent 60%),
+  background: radial-gradient(circle at 15% 20%, rgba(16, 185, 129, 0.5), transparent 60%),
     radial-gradient(circle at 80% 75%, rgba(45, 212, 191, 0.45), transparent 60%),
     radial-gradient(circle at 75% 10%, rgba(56, 189, 248, 0.35), transparent 55%),
     radial-gradient(circle at 20% 85%, rgba(34, 197, 94, 0.35), transparent 55%);
@@ -874,10 +865,7 @@ main {
   border: 1px solid #d1d5db;
   padding: 0.45rem 0.75rem;
   background-color: #f9fafb;
-  transition:
-    border-color 0.15s ease-out,
-    box-shadow 0.15s ease-out,
-    background-color 0.15s ease-out;
+  transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out, background-color 0.15s ease-out;
 }
 
 .auth-input-wrapper input {
@@ -937,10 +925,7 @@ main {
   letter-spacing: 0.02em;
 
   box-shadow: 0 12px 30px rgba(22, 163, 74, 0.45);
-  transition:
-    transform 0.15s ease-out,
-    box-shadow 0.15s ease-out,
-    background-color 0.15s ease-out;
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, background-color 0.15s ease-out;
 }
 
 .auth-submit:hover {
@@ -991,10 +976,7 @@ main {
   cursor: pointer;
   font-size: 1rem;
   color: #374151;
-  transition:
-    background-color 0.15s ease-out,
-    border-color 0.15s ease-out,
-    box-shadow 0.15s ease-out,
+  transition: background-color 0.15s ease-out, border-color 0.15s ease-out, box-shadow 0.15s ease-out,
     transform 0.15s ease-out;
 }
 
@@ -1070,7 +1052,6 @@ main {
 .auth-link--inline:hover {
   text-decoration: underline;
 }
-
 
 /* ===================== DASHBOARD LAYOUT ===================== */
 
@@ -1210,7 +1191,7 @@ main {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  overflow: hidden;              /* Lo pongo para que el icono del perfil no se deforme (error pasado) */
+  overflow: hidden; /* Lo pongo para que el icono del perfil no se deforme (error pasado) */
   flex-shrink: 0;
 
   display: flex;
@@ -1254,10 +1235,7 @@ main {
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
-  transition:
-    left 0.25s ease,
-    background-color 0.15s ease,
-    transform 0.15s ease;
+  transition: left 0.25s ease, background-color 0.15s ease, transform 0.15s ease;
 }
 
 .sidebar-toggle:hover {
@@ -1466,13 +1444,7 @@ main {
 .chart-placeholder {
   height: 220px;
   border-radius: 0.8rem;
-  background: repeating-linear-gradient(
-    135deg,
-    #f3f4f6,
-    #f3f4f6 6px,
-    #e5e7eb 6px,
-    #e5e7eb 12px
-  );
+  background: repeating-linear-gradient(135deg, #f3f4f6, #f3f4f6 6px, #e5e7eb 6px, #e5e7eb 12px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1517,10 +1489,7 @@ main {
   background: linear-gradient(135deg, #16a34a, #22c55e);
   color: #ecfdf5;
   box-shadow: 0 8px 18px rgba(22, 163, 74, 0.25);
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    filter 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
 
 .transactions-add-btn:hover {
@@ -1556,10 +1525,7 @@ main {
   font-size: 0.85rem;
   outline: none;
   background-color: #f9fafb;
-  transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease,
-    box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .transactions-search-input:focus {
@@ -1714,7 +1680,7 @@ main {
 
 /* ===== Account dropdown en sidebar ===== */
 .sidebar-account-container {
-  margin-top: auto;          /* empuja el bloque completo al fondo */
+  margin-top: auto; /* empuja el bloque completo al fondo */
   margin-bottom: 0.5rem;
   position: relative;
 }
@@ -1723,7 +1689,7 @@ main {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 110%;              /* aparece justo encima del botón */
+  bottom: 110%; /* aparece justo encima del botón */
   background-color: #ffffff;
   border-radius: 0.9rem;
   border: 1px solid #e5e7eb;
@@ -1748,7 +1714,7 @@ main {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  overflow: hidden;              /* Lo pongo para que el icono del perfil no se deforme (error pasado) */
+  overflow: hidden; /* Lo pongo para que el icono del perfil no se deforme (error pasado) */
   flex-shrink: 0;
 
   display: flex;
@@ -1765,7 +1731,7 @@ main {
 .account-dropdown-avatar img {
   width: 100%;
   height: 100%;
-  object-fit: cover;   /* Recorta la imagen pero no la deforma */
+  object-fit: cover; /* Recorta la imagen pero no la deforma */
   display: block;
 }
 
@@ -2409,13 +2375,7 @@ main {
 /* Tooltip custom */
 .recap-tooltip {
   /* Un fondo claro */
-  background: linear-gradient(
-    135deg,
-    #0f766e,
-    #22c55e,
-    #0ea5e9,
-    #16a34a
-  );
+  background: linear-gradient(135deg, #0f766e, #22c55e, #0ea5e9, #16a34a);
   background-size: 220% 220%;
   animation: recapTooltipGlow 9s ease-in-out infinite;
 
@@ -2469,9 +2429,7 @@ main {
   background-color: rgba(15, 23, 42, 0.45);
 
   /* Ligero brillo para que se vean más nitido los números */
-  text-shadow:
-    0 0 1px rgba(0, 0, 0, 0.6),
-    0 0 2px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 0 1px rgba(0, 0, 0, 0.6), 0 0 2px rgba(0, 0, 0, 0.4);
 }
 
 .recap-tooltip-income {
@@ -2526,5 +2484,107 @@ main {
 
   .recap-middle-row {
     flex-direction: column;
+  }
+}
+
+/* --- MODAL DE TRANSACCIONES --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #1e293b;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #475569;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.btn-cancel {
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-save {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

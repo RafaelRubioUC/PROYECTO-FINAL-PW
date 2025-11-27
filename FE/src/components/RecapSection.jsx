@@ -1,460 +1,208 @@
-import React, { useMemo, useState } from "react";
-import { INITIAL_TRANSACTIONS } from "./TransactionsSection";
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-} from "recharts"; // Añadimos una nueva dependencia para crear el gráfico que utilizaremos en el proyecto //
+import React, { useState, useEffect, useMemo } from "react";
+// Importamos los componentes del gráfico
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-const CATEGORY_BUDGETS = {
-  "Food & Dining": 600,
-  Transportation: 300,
-  Entertainment: 250,
-};
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
-// Tooltip custom del gráfico
-const SpendingTooltip = ({ active, payload, label }) => {
-  if (!active || !payload || !payload.length) return null;
+function RecapSection({ onViewAllTransactions }) {
+  const [summary, setSummary] = useState({
+    balance: 0,
+    income: 0,
+    expenses: 0,
+  });
+  const [recentTransactions, setRecentTransactions] = useState([]);
+  const [allTransactions, setAllTransactions] = useState([]); // Guardamos todas para el gráfico
+  const [loading, setLoading] = useState(true);
 
-  const entry = payload[0].payload;
-  const income = entry.income || 0;
-  const expenses = entry.expenses || 0;
-  const net = income - expenses;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
 
-  return (
-    <div className="recap-tooltip">
-      <div className="recap-tooltip-date">{label}</div>
+        const response = await fetch(`${API_URL}/api/transactions`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
 
-      <div className="recap-tooltip-row">
-        <span>Ingresos</span>
-        <span className="recap-tooltip-income">
-          +${income.toFixed(2)}
-        </span>
-      </div>
+        if (data.success) {
+          const allTx = data.data;
+          setAllTransactions(allTx); // Guardamos para el gráfico
 
-      <div className="recap-tooltip-row">
-        <span>Gastos</span>
-        <span className="recap-tooltip-expense">
-          -${expenses.toFixed(2)}
-        </span>
-      </div>
+          // 1. Calcular Totales
+          let income = 0;
+          let expense = 0;
 
-      <div className="recap-tooltip-row recap-tooltip-net">
-        <span>Balance neto</span>
-        <span
-          className={
-            net >= 0
-              ? "recap-tooltip-income"
-              : "recap-tooltip-expense"
-          }
-        >
-          {net >= 0 ? "+" : "-"}${Math.abs(net).toFixed(2)}
-        </span>
-      </div>
-    </div>
-  );
-};
+          allTx.forEach((tx) => {
+            const amount = parseFloat(tx.amount);
+            if (amount >= 0) income += amount;
+            else expense += amount;
+          });
 
-function RecapSection({ onViewAllTransactions = () => {} }) {
-  const [range, setRange] = useState("7d");
+          setSummary({
+            balance: income + expense,
+            income: income,
+            expenses: expense,
+          });
 
-  // Helpers fechas
-  const makeKey = (d) => {
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
+          // 2. Últimas 4 transacciones
+          setRecentTransactions(allTx.slice(0, 4));
+        }
+      } catch (error) {
+        console.error("Error cargando datos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const makeLabel = (d) =>
-    d.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-
-  // === Resumen general (tarjetas de arriba) ===
-  const summary = useMemo(() => {
-    let income = 0;
-    let expenses = 0;
-
-    INITIAL_TRANSACTIONS.forEach((tx) => {
-      if (tx.type === "income") income += tx.amount;
-      else expenses += tx.amount;
-    });
-
-    const balance = income - expenses;
-    return { income, expenses, balance };
+    fetchData();
   }, []);
 
-  // === Categorías principales para Monthly Budget ===
-  const categories = useMemo(() => {
-    const map = new Map();
-
-    INITIAL_TRANSACTIONS.forEach((tx) => {
-      if (tx.type !== "expense") return;
-      const prev = map.get(tx.category) || 0;
-      map.set(tx.category, prev + tx.amount);
-    });
-
-    const result = Array.from(map.entries()).map(([category, spent]) => {
-      const budget =
-        CATEGORY_BUDGETS[category] !== undefined
-          ? CATEGORY_BUDGETS[category]
-          : spent * 1.5;
-
-      const utilization = budget > 0 ? (spent / budget) * 100 : 0;
-
-      return {
-        category,
-        spent,
-        budget,
-        utilization,
-      };
-    });
-
-    return result.slice(0, 3);
-  }, []);
-
-  // === Últimas transacciones (mini Recent Transactions) ===
-  const recentTransactions = useMemo(() => {
-    const copy = [...INITIAL_TRANSACTIONS];
-
-    copy.sort((a, b) => {
-      const da = a.date ? new Date(a.date).getTime() : 0;
-      const db = b.date ? new Date(b.date).getTime() : 0;
-      return db - da;
-    });
-
-    return copy.slice(0, 3);
-  }, []);
-
-  // === Datos para el gráfico de Spending Overview ===
+  // --- LÓGICA PARA EL GRÁFICO (Últimos 7 días) ---
   const chartData = useMemo(() => {
-    if (!INITIAL_TRANSACTIONS.length) return [];
+    const data = [];
+    const today = new Date();
 
-    const parsed = INITIAL_TRANSACTIONS
-      .filter((tx) => tx.date)
-      .map((tx) => ({
-        ...tx,
-        dateObj: new Date(tx.date),
-      }))
-      .filter((tx) => !Number.isNaN(tx.dateObj.getTime()));
+    // Generar los últimos 7 días
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(today.getDate() - i);
+      const dateStr = d.toISOString().split("T")[0]; // "2025-11-27"
 
-    if (!parsed.length) return [];
+      // Buscar transacciones de este día
+      const dayTxs = allTransactions.filter((tx) => tx.date.startsWith(dateStr));
 
-    // fecha más reciente
-    let endDate = parsed[0].dateObj;
-    parsed.forEach((tx) => {
-      if (tx.dateObj > endDate) endDate = tx.dateObj;
-    });
+      // Sumar ingresos y gastos del día
+      const income = dayTxs.reduce((acc, tx) => (parseFloat(tx.amount) > 0 ? acc + parseFloat(tx.amount) : acc), 0);
+      const expense = dayTxs.reduce(
+        (acc, tx) => (parseFloat(tx.amount) < 0 ? acc + Math.abs(parseFloat(tx.amount)) : acc),
+        0
+      );
 
-    // fecha de inicio según rango
-    const startDate = new Date(endDate);
-    if (range === "7d") {
-      startDate.setDate(endDate.getDate() - 6);
-    } else if (range === "30d") {
-      startDate.setDate(endDate.getDate() - 29);
-    } else if (range === "month") {
-      startDate.setDate(endDate.getDate() - 29);
-    } else if (range === "year") {
-      startDate.setFullYear(endDate.getFullYear() - 1);
-    }
-
-    // crear registros día a día
-    const map = new Map();
-    const dayMs = 24 * 60 * 60 * 1000;
-
-    for (
-      let t = startDate.getTime();
-      t <= endDate.getTime();
-      t += dayMs
-    ) {
-      const d = new Date(t);
-      const key = makeKey(d);
-      map.set(key, {
-        dateKey: key,
-        label: makeLabel(d),
-        income: 0,
-        expenses: 0,
+      data.push({
+        name: d.toLocaleDateString("es-ES", { day: "numeric", month: "short" }), // "27 nov"
+        Ingresos: income,
+        Gastos: expense,
       });
     }
+    return data;
+  }, [allTransactions]);
 
-    // sumar ingresos/gastos por día
-    parsed.forEach((tx) => {
-      if (tx.dateObj < startDate || tx.dateObj > endDate) return;
-      const key = makeKey(tx.dateObj);
-      const entry = map.get(key);
-      if (!entry) return;
-
-      if (tx.type === "income") {
-        entry.income += tx.amount;
-      } else {
-        entry.expenses += tx.amount;
-      }
-    });
-
-    return Array.from(map.values());
-  }, [range]);
-
-  // === Helpers formato ===
-  const formatMoney = (value) =>
-    value.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-
-  const formatRecentDate = (value) => {
-    if (!value) return "";
-    const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return "";
-    return d.toLocaleString("en-US", {
-      weekday: "short",
-      hour: "2-digit",
-      minute: "2-digit",
+  const formatMoney = (amount) => {
+    return Number(amount).toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
     });
   };
 
   return (
     <>
-      {/* TOP ROW: Balance / Ingreso / Gastos */}
-      <section className="dashboard-row recap-top-row">
-        <div className="panel-card recap-stat-card recap-stat-card--balance">
-          <div className="recap-stat-label">Balance total</div>
-          <div className="recap-stat-value">
-            ${formatMoney(summary.balance)}
-          </div>
-          <div className="recap-stat-footnote">
-            Basado en todos los ingresos y gastos registrados.
-          </div>
+      {/* TARJETAS SUPERIORES */}
+      <section className="dashboard-row">
+        <div className="summary-card">
+          <p className="summary-label">Balance total</p>
+          <h2 className="summary-value" style={{ color: summary.balance >= 0 ? "#10b981" : "#ef4444" }}>
+            {loading ? "..." : formatMoney(summary.balance)}
+          </h2>
+          <p className="summary-change">Basado en movimientos registrados.</p>
         </div>
-
-        <div className="panel-card recap-stat-card recap-stat-card--income">
-          <div className="recap-stat-label">Ingresos</div>
-          <div className="recap-stat-value">
-            ${formatMoney(summary.income)}
-          </div>
-          <div className="recap-stat-footnote">
-            Dinero que has ganado.
-          </div>
+        <div className="summary-card">
+          <p className="summary-label">Ingresos</p>
+          <h2 className="summary-value" style={{ color: "#10b981" }}>
+            {loading ? "..." : formatMoney(summary.income)}
+          </h2>
+          <p className="summary-change positive">Dinero ganado.</p>
         </div>
-
-        <div className="panel-card recap-stat-card recap-stat-card--expense">
-          <div className="recap-stat-label">Gastos</div>
-          <div className="recap-stat-value">
-            ${formatMoney(summary.expenses)}
-          </div>
-          <div className="recap-stat-footnote">
-            Dinero que has gastado.
-          </div>
+        <div className="summary-card">
+          <p className="summary-label">Gastos</p>
+          <h2 className="summary-value" style={{ color: "#ef4444" }}>
+            {loading ? "..." : formatMoney(summary.expenses)}
+          </h2>
+          <p className="summary-change negative">Dinero gastado.</p>
         </div>
       </section>
 
-      {/* MIDDLE ROW: Monthly Budget + Recent Transactions */}
-      <section className="dashboard-row recap-middle-row">
-        {/* Monthly Budget */}
-        <div className="panel-card recap-budget-card">
-          <div className="recap-card-header">
-            <h3 className="recap-card-title">Presupuesto mensual</h3>
-            <span className="recap-card-subtitle">
-              Vista rápida de tu gasto por categorías y sus límites.
-            </span>
+      <section className="dashboard-row dashboard-row--middle">
+        {/* PRESUPUESTO (Placeholder) */}
+        <div className="panel-card">
+          <div className="panel-header">
+            <h3>Presupuesto mensual</h3>
           </div>
-
-          <div className="recap-budget-list">
-            {categories.map((cat) => (
-              <div key={cat.category} className="recap-budget-item">
-                <div className="recap-budget-row">
-                  <span className="recap-budget-category">
-                    {cat.category}
-                  </span>
-                  <span className="recap-budget-amount">
-                    ${formatMoney(cat.spent)} / $
-                    {formatMoney(cat.budget)}
-                  </span>
-                </div>
-                <div className="recap-budget-bar">
-                  <div
-                    className={`recap-budget-bar-fill ${
-                      cat.utilization > 100
-                        ? "recap-budget-bar-fill--danger"
-                        : cat.utilization > 80
-                        ? "recap-budget-bar-fill--warning"
-                        : "recap-budget-bar-fill--ok"
-                    }`}
-                    style={{
-                      width: `${Math.min(cat.utilization, 120)}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
+          <div
+            className="chart-placeholder"
+            style={{
+              height: "200px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#94a3b8",
+            }}
+          >
+            Próximamente...
           </div>
         </div>
 
-        {/* Recent Transactions */}
-        <div className="panel-card recap-recent-card">
-          <div className="recap-card-header">
-            <h3 className="recap-card-title">Transacciones recientes</h3>
+        {/* TRANSACCIONES RECIENTES */}
+        <div className="panel-card">
+          <div className="panel-header">
+            <h3>Transacciones recientes</h3>
           </div>
-
-          <ul className="recap-recent-list">
+          <ul className="transactions-list">
+            {recentTransactions.length === 0 && !loading && (
+              <p style={{ color: "#64748b", padding: "10px" }}>No hay movimientos.</p>
+            )}
             {recentTransactions.map((tx) => (
-              <li key={tx.id} className="recap-recent-item">
-                <div className="recap-recent-main">
-                  <span className="recap-recent-description">
-                    {tx.description}
-                  </span>
-                  <span
-                    className={`recap-recent-amount ${
-                      tx.type === "income"
-                        ? "recap-recent-amount--income"
-                        : "recap-recent-amount--expense"
-                    }`}
-                  >
-                    {tx.type === "income" ? "+" : "-"}$
-                    {formatMoney(tx.amount)}
-                  </span>
+              <li className="transaction-item" key={tx.id}>
+                <div className={`transaction-icon transaction-icon--${parseFloat(tx.amount) >= 0 ? "green" : "red"}`}>
+                  {parseFloat(tx.amount) >= 0 ? "💰" : "🛒"}
                 </div>
-                <div className="recap-recent-meta">
-                  <span className="recap-recent-category">
-                    {tx.category}
-                  </span>
-                  <span className="recap-recent-date">
-                    {formatRecentDate(tx.date)}
-                  </span>
+                <div className="transaction-info">
+                  <span className="transaction-title">{tx.description}</span>
+                  <span className="transaction-meta">{new Date(tx.date).toLocaleDateString()}</span>
                 </div>
+                <span className={`transaction-amount ${parseFloat(tx.amount) >= 0 ? "positive" : "negative"}`}>
+                  {formatMoney(tx.amount)}
+                </span>
               </li>
             ))}
           </ul>
-
-          <button
-            type="button"
-            className="recap-recent-button"
-            onClick={onViewAllTransactions}
-          >
-            Ver todas las transacciones
+          <button className="transactions-view-all" onClick={onViewAllTransactions}>
+            Ver todas
           </button>
         </div>
       </section>
 
-      {/* BOTTOM ROW: Spending Overview con Recharts */}
-      <section className="dashboard-row recap-bottom-row">
-        <div className="panel-card recap-chart-card">
-          <div className="recap-chart-header">
-            <div>
-              <h3 className="recap-card-title">Gráfico de ingresos y gastos</h3>
-              <span className="recap-card-subtitle">
-                Un gráfico que muestra tus ingresos y gastos a lo largo del tiempo.
-              </span>
-            </div>
-
-          <select
-            className="recap-chart-range"
-            value={range}
-            onChange={(e) => setRange(e.target.value)}
-          >
-            <option value="7d">Últimos 7 días</option>
-            <option value="30d">Últimos 30 días</option>
-            <option value="month">Este mes</option>
-            <option value="year">Este año</option>
-          </select>
+      {/* --- GRÁFICO REAL (RECHARTS) --- */}
+      <section className="dashboard-row">
+        <div className="panel-card full-width">
+          <div className="panel-header panel-header--with-filter">
+            <h3>Ingresos vs Gastos</h3>
+            <select className="panel-filter">
+              <option>Últimos 7 días</option>
+            </select>
           </div>
 
-          <div className="recap-chart-container">
-            {!chartData.length ? (
-              <div className="recap-chart-placeholder">
-                No hay suficiente información para mostrar el gráfico.
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height={280}>
-                <AreaChart
-                  data={chartData}
-                  margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient
-                      id="incomeGradient"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="0%"
-                        stopColor="#22c55e"
-                        stopOpacity={0.85}
-                      />
-                      <stop
-                        offset="100%"
-                        stopColor="#22c55e"
-                        stopOpacity={0.08}
-                      />
-                    </linearGradient>
-                    <linearGradient
-                      id="expensesGradient"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="0%"
-                        stopColor="#ef4444"
-                        stopOpacity={0.85}
-                      />
-                      <stop
-                        offset="100%"
-                        stopColor="#ef4444"
-                        stopOpacity={0.08}
-                      />
-                    </linearGradient>
-                  </defs>
-
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke="#e5e7eb"
-                  />
-                  <XAxis
-                    dataKey="label"
-                    tick={{ fontSize: 11 }}
-                    tickMargin={6}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 11 }}
-                    tickFormatter={(v) => `$${v}`}
-                  />
-                  <Tooltip content={<SpendingTooltip />} />
-                  <Legend />
-
-                  <Area
-                    type="monotone"
-                    dataKey="income"
-                    name="Ingresos"
-                    stroke="#16a34a"
-                    fill="url(#incomeGradient)"
-                    strokeWidth={2}
-                    dot={{ r: 2 }}
-                    activeDot={{ r: 4 }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="expenses"
-                    name="Gastos"
-                    stroke="#ef4444"
-                    fill="url(#expensesGradient)"
-                    strokeWidth={2}
-                    dot={{ r: 2 }}
-                    activeDot={{ r: 4 }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
+          <div style={{ width: "100%", height: 300 }}>
+            <ResponsiveContainer>
+              <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorIngresos" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorGastos" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <Tooltip />
+                <Area type="monotone" dataKey="Ingresos" stroke="#10b981" fillOpacity={1} fill="url(#colorIngresos)" />
+                <Area type="monotone" dataKey="Gastos" stroke="#ef4444" fillOpacity={1} fill="url(#colorGastos)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </section>

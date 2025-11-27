@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FiHome,
   FiList,
@@ -18,6 +19,7 @@ import BudgetSection from "../components/BudgetSection";
 import ReportsSection from "../components/ReportsSection";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("recap");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -27,9 +29,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     try {
-      const raw =
-        window.localStorage.getItem("spendlist_user") ||
-        window.localStorage.getItem("user");
+      const raw = window.localStorage.getItem("spendlist_user") || window.localStorage.getItem("user");
 
       if (raw) {
         const parsed = JSON.parse(raw);
@@ -65,18 +65,6 @@ const Dashboard = () => {
 
   const toggleSidebar = () => setSidebarCollapsed((prev) => !prev);
 
-  // 🔹 Cargar datos de usuario (placeholder: intenta leer de localStorage)
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem("spendlist_user");
-      if (stored) {
-        setUserData(JSON.parse(stored));
-      }
-    } catch (err) {
-      console.error("Error leyendo userData de localStorage", err);
-    }
-  }, []);
-
   // 🔹 Cerrar el menú de Account si se hace click fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -100,32 +88,16 @@ const Dashboard = () => {
   };
 
   return (
-    <div
-      className={`dashboard-layout ${
-        sidebarCollapsed ? "dashboard-layout--collapsed" : ""
-      }`}
-    >
+    <div className={`dashboard-layout ${sidebarCollapsed ? "dashboard-layout--collapsed" : ""}`}>
       {/* Botón flotante para colapsar / expandir sidebar */}
-      <button
-        type="button"
-        className="sidebar-toggle"
-        onClick={toggleSidebar}
-      >
+      <button type="button" className="sidebar-toggle" onClick={toggleSidebar}>
         {sidebarCollapsed ? <FiChevronRight /> : <FiChevronLeft />}
       </button>
 
       {/* ===== SIDEBAR ===== */}
-      <aside
-        className={`dashboard-sidebar ${
-          sidebarCollapsed ? "collapsed" : ""
-        }`}
-      >
+      <aside className={`dashboard-sidebar ${sidebarCollapsed ? "collapsed" : ""}`}>
         <div className="sidebar-logo">
-          <img
-            src="/assets/logo-icon.jpeg"
-            alt="SpendList logo"
-            className="sidebar-logo-img"
-          />
+          <img src="/assets/logo-icon.jpeg" alt="SpendList logo" className="sidebar-logo-img" />
           <span className="sidebar-logo-text">
             Spend<span>List</span>
           </span>
@@ -133,9 +105,7 @@ const Dashboard = () => {
 
         <nav className="sidebar-nav">
           <button
-            className={`sidebar-item ${
-              activeTab === "recap" ? "active" : ""
-            }`}
+            className={`sidebar-item ${activeTab === "recap" ? "active" : ""}`}
             onClick={() => setActiveTab("recap")}
           >
             <FiHome />
@@ -143,9 +113,7 @@ const Dashboard = () => {
           </button>
 
           <button
-            className={`sidebar-item ${
-              activeTab === "transactions" ? "active" : ""
-            }`}
+            className={`sidebar-item ${activeTab === "transactions" ? "active" : ""}`}
             onClick={() => setActiveTab("transactions")}
           >
             <FiList />
@@ -153,9 +121,7 @@ const Dashboard = () => {
           </button>
 
           <button
-            className={`sidebar-item ${
-              activeTab === "budget" ? "active" : ""
-            }`}
+            className={`sidebar-item ${activeTab === "budget" ? "active" : ""}`}
             onClick={() => setActiveTab("budget")}
           >
             <FiPieChart />
@@ -163,9 +129,7 @@ const Dashboard = () => {
           </button>
 
           <button
-            className={`sidebar-item ${
-              activeTab === "reports" ? "active" : ""
-            }`}
+            className={`sidebar-item ${activeTab === "reports" ? "active" : ""}`}
             onClick={() => setActiveTab("reports")}
           >
             <FiBarChart2 />
@@ -239,17 +203,11 @@ const Dashboard = () => {
         <header className="dashboard-header">
           <div>
             <h1>{sectionTitles[activeTab]}</h1>
-            <p className="dashboard-subtitle">
-              {sectionSubtitles[activeTab]}
-            </p>
+            <p className="dashboard-subtitle">{sectionSubtitles[activeTab]}</p>
           </div>
         </header>
 
-        {activeTab === "recap" && (
-          <RecapSection
-            onViewAllTransactions={() => setActiveTab("transactions")}
-          />
-        )}
+        {activeTab === "recap" && <RecapSection onViewAllTransactions={() => setActiveTab("transactions")} />}
 
         {activeTab === "transactions" && <TransactionsSection />}
 
