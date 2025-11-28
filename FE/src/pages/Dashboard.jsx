@@ -16,7 +16,6 @@ import {
 import RecapSection from "../components/RecapSection";
 import TransactionsSection from "../components/TransactionsSection";
 import BudgetSection from "../components/BudgetSection";
-import ReportsSection from "../components/ReportsSection";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -51,15 +50,14 @@ const Dashboard = () => {
 
   const sectionTitles = {
     recap: "Recap",
-    transactions: "Transactions",
-    budget: "Budget",
-    reports: "Reports",
+    transactions: "Transacciones",
+    budget: "Presupuesto",
   };
 
   const sectionSubtitles = {
-    recap: "Resumen de tus finanzas personales",
+    recap: "Resumen mensual de tus finanzas personales",
     transactions: "Gestiona y revisa tus movimientos",
-    reports: "Visualiza reportes y estadísticas",
+    budget: "Visualiza el presupuesto asignado a tus categorías",
   };
 
   const toggleSidebar = () => setSidebarCollapsed((prev) => !prev);
@@ -125,14 +123,6 @@ const Dashboard = () => {
           >
             <FiPieChart />
             <span>Budget</span>
-          </button>
-
-          <button
-            className={`sidebar-item ${activeTab === "reports" ? "active" : ""}`}
-            onClick={() => setActiveTab("reports")}
-          >
-            <FiBarChart2 />
-            <span>Reports</span>
           </button>
         </nav>
 
@@ -211,8 +201,6 @@ const Dashboard = () => {
         {activeTab === "transactions" && <TransactionsSection />}
 
         {activeTab === "budget" && <BudgetSection />}
-
-        {activeTab === "reports" && <ReportsSection />}
       </main>
     </div>
   );

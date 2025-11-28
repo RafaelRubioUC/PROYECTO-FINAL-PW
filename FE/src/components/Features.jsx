@@ -14,7 +14,7 @@ const featuresList = [
     description: 'Puedes limitar la cantidad de dinero que usas con nuestro limitor de gastos, solo elije una categoría, cantidad máxima y listo. Ahora puedes displinarte sobre cuánto gastas y en qué con solo un click'
   },
   { 
-    title: 'Reportes y estadísticas',
+    title: 'Gráficos y estadísticas',
     image: imgEstadisticas,
     description: 'Ahora puedes ver qué tanto has gastado a lo largo de un período de tiempo e incluso ver datos relacionados sobre en qué has gastado más y otros.'
   }

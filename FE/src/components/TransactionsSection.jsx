@@ -243,61 +243,57 @@ function TransactionsSection() {
         </div>
 
         {/* FILTROS (Igual que antes) */}
-        <div className="transactions-filters" style={{ flexWrap: "wrap", gap: "10px" }}>
-          <div className="transactions-search-wrapper" style={{ minWidth: "200px" }}>
+        <div className="transactions-filters">
+          <div className="transactions-search-wrapper">
             <input
               type="text"
               className="transactions-search-input"
-              placeholder="Buscar..."
+              placeholder="Buscar transacción..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="transactions-filter-group" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-            <select className="transactions-select" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+
+          <div className="transactions-filter-group">
+            {/* Tipo: todos / ingreso / gasto */}
+            <select
+              className="transactions-select"
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+            >
               <option value="all">Tipo: Todos</option>
               <option value="income">Ingresos</option>
               <option value="expense">Gastos</option>
             </select>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "5px",
-                background: "white",
-                border: "1px solid #e2e8f0",
-                borderRadius: "8px",
-                padding: "0 10px",
-              }}
-            >
-              <span style={{ fontSize: "0.8rem", color: "#64748b" }}>Desde:</span>
+
+            {/* Fecha DESDE */}
+            <div className="transactions-date-filter">
+              <span className="transactions-date-label">Desde:</span>
               <input
                 type="date"
+                className="transactions-date-input"
                 value={filterStartDate}
                 onChange={(e) => setFilterStartDate(e.target.value)}
-                style={{ border: "none", outline: "none", color: "#334155", fontFamily: "inherit" }}
               />
             </div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "5px",
-                background: "white",
-                border: "1px solid #e2e8f0",
-                borderRadius: "8px",
-                padding: "0 10px",
-              }}
-            >
-              <span style={{ fontSize: "0.8rem", color: "#64748b" }}>Hasta:</span>
+
+            {/* Fecha HASTA */}
+            <div className="transactions-date-filter">
+              <span className="transactions-date-label">Hasta:</span>
               <input
                 type="date"
+                className="transactions-date-input"
                 value={filterEndDate}
                 onChange={(e) => setFilterEndDate(e.target.value)}
-                style={{ border: "none", outline: "none", color: "#334155", fontFamily: "inherit" }}
               />
             </div>
-            <select className="transactions-select" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
+
+            {/* Ordenamiento */}
+            <select
+              className="transactions-select"
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+            >
               <option value="newest">Más reciente</option>
               <option value="oldest">Más antiguo</option>
               <option value="amountDesc">Mayor cantidad</option>
@@ -308,7 +304,7 @@ function TransactionsSection() {
 
         <div className="transactions-table-wrapper">
           {loading ? (
-            <p style={{ padding: "20px" }}>Cargando...</p>
+            <p className="transactions-loading">Cargando transacciones...</p>
           ) : (
             <table className="transactions-table">
               <thead>
@@ -318,7 +314,7 @@ function TransactionsSection() {
                   <th>Categoría</th>
                   <th>Tipo</th>
                   <th>Cantidad</th>
-                  <th style={{ width: "50px" }}></th> {/* Columna Acciones */}
+                  <th className="transactions-actions-header"></th> {/* Columna Acciones */}
                 </tr>
               </thead>
               <tbody>

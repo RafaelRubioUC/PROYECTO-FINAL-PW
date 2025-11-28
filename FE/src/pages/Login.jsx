@@ -59,9 +59,7 @@ function Login() {
             })
           );
         }
-
-        alert("¡Bienvenido! Sesión iniciada.");
-
+        
         // Redirigir al Dashboard o Home
         navigate("/dashboard"); // <--- Navega al dashboard
       } else {
